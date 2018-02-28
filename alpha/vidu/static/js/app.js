@@ -1,12 +1,18 @@
 var urlTemplate = "https://www.youtube.com/embed/URL?controls=1&autoplay=1&showinfo=0&rel=0&&loop=1&rel=0";
-
 var player;
+var videoID;
+
+window.onload = initialize();
+
+function initialize() {
+    videoID = youtube_parser(videoURL);
+}
 
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
         height: '360',
         width: '640',
-        videoId: 'cFpnZldsIXM',
+        videoId: videoID,
         events: {
             // 'onReady': onPlayerReady,
             // 'onStateChange': onPlayerStateChange
@@ -79,7 +85,7 @@ function youtube_parser(url) {
     return (match && match[7].length == 11) ? match[7] : false;
 }
 
-function formatTime(time){
+function formatTime(time) {
     time = Math.round(time);
 
     var minutes = Math.floor(time / 60),
