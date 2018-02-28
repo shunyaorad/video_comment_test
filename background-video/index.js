@@ -48,6 +48,13 @@ document.getElementById("comment")
         }
     });
 
+document.getElementById("playback-time")
+    .addEventListener("keyup", function (event) {
+        if (event.keyCode === 13) {
+            jumpTo();
+        }
+    });
+
 function submitComment() {
     var comment = document.getElementById("comment").value;
     document.getElementById("comment").value = "";
@@ -81,4 +88,14 @@ function formatTime(time){
     seconds = seconds < 10 ? '0' + seconds : seconds;
 
     return minutes + ":" + seconds;
+}
+
+function jumpTo() {
+    var newTime = document.getElementById("playback-time").value;
+    document.getElementById("playback-time").value = "";
+    if (isNaN(newTime)) {
+        return;
+    }
+    // Skip video to new time.
+    player.seekTo(newTime);
 }

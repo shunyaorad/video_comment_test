@@ -30,11 +30,20 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 video-url mt-4">
+        <div class="col-12 video-url mt-4 mb-1">
             <div class="input-group">
                 <input id="comment" type="text" class="form-control" placeholder="Enter Comment">
                 <span class="input-group-btn">
-                    <button id="comment_button" class="btn btn-secondary" type="button" onclick="submitComment()">Submit</button>
+                    <button id="comment_button" class="btn btn-secondary" type="button"
+                            onclick="submitComment()">Submit</button>
+                </span>
+            </div>
+        </div>
+        <div class="col-12 video-url mt-1">
+            <div class="input-group">
+                <input id="playback-time" type="text" class="form-control" placeholder="Jump to">
+                <span class="input-group-btn">
+                    <button class="btn btn-secondary" type="button" onclick="submitURL()">Jump!</button>
                 </span>
             </div>
         </div>
