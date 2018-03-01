@@ -6,7 +6,7 @@ from django.utils.text import Truncator
 
 
 class Room(models.Model):
-	name = models.CharField(max_length=30, unique=True)
+	name = models.CharField(max_length=30)
 	video_url = models.CharField(max_length=100)
 	owner = models.ForeignKey(User, related_name='rooms', on_delete=models.CASCADE)
 	last_commented = models.DateTimeField(auto_now_add=True)

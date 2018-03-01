@@ -3,14 +3,14 @@
 {% block title %}Start a New Room{% endblock %}
 
 {% block breadcrumb %}
-    <li class="breadcrumb-item"><a href="{% url 'home' %}">Rooms</a></li>
-    <li class="breadcrumb-item active">New topic</li>
+  <li class="breadcrumb-item"><a href="{% url 'home' %}">Room</a></li>
+  <li class="breadcrumb-item active">New Room</li>
 {% endblock %}
 
 {% block content %}
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-success">Create</button>
-    </form>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include 'includes/form.html' %}
+    <button type="submit" class="btn btn-success">Create</button>
+  </form>
 {% endblock %}

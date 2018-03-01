@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load widget_tweaks %}
 
 {% block title %}
     {{ room.name }} - {{ block.super }}
@@ -14,12 +15,34 @@
     <div class="container">
         <div class="row justify-content-md-center">
             <div class="col-12 video-url mb-3 mt-1">
-                <div class="input-group">
-                    <input id="url" type="text" class="form-control" placeholder="Enter Youtube URL">
-                    <span class="input-group-btn">
-                    <button class="btn btn-secondary" type="button" onclick="submitURL()">Go!</button>
-                </span>
-                </div>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="form-row align-items-center">
+                        {% for field in url_form %}
+                            <div class="form-group col-md-5 my-1">
+                                <div class="col pl-0">
+                                    {% if form.is_bound %}
+                                        {% if field.errors %}
+                                            {% render_field field class="form-control is-invalid" %}
+                                            {% for error in field.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ error }}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            {% render_field field class="form-control is-valid" %}
+                                        {% endif %}
+                                    {% else %}
+                                        {% render_field field class="form-control" %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="col-auto my-1">
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </div>
+                    </div>
+                </form>
             </div>
             <div class="video-content col-12">
                 <div class="embed-responsive embed-responsive-16by9">
@@ -32,20 +55,48 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 video-url mt-4 mb-1">
-                <div class="input-group">
-                    <input id="comment" type="text" class="form-control" placeholder="Enter Comment">
-                    <span class="input-group-btn">
-                    <button id="comment_button" class="btn btn-secondary" type="button"
-                            onclick="submitComment()">Submit</button>
-                </span>
-                </div>
-            </div>
+{#            <div class="col-12 video-url mt-4 mb-1">#}
+{#                <div class="input-group">#}
+{#                    <input id="comment" type="text" class="form-control" placeholder="Enter Comment">#}
+{#                    <span class="input-group-btn">#}
+{#                    <button id="comment_button" class="btn btn-primary" type="button"#}
+{#                            onclick="submitComment()">Submit</button>#}
+{#                </span>#}
+{#                </div>#}
+{#            </div>#}
             <div class="col-12 video-url mt-1">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="form-row align-items-center">
+                        {% for field in comment_form %}
+                            <div class="form-group col-10 my-1">
+                                <div class="col pl-0">
+                                    {% if form.is_bound %}
+                                        {% if field.errors %}
+                                            {% render_field field class="form-control is-invalid" %}
+                                            {% for error in field.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ error }}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            {% render_field field class="form-control is-valid" %}
+                                        {% endif %}
+                                    {% else %}
+                                        {% render_field field class="form-control" %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="col-auto my-1">
+                            <button type="submit" class="btn btn-primary">Comment</button>
+                        </div>
+                    </div>
+                </form>
                 <div class="input-group">
                     <input id="playback-time" type="text" class="form-control" placeholder="Jump to">
                     <span class="input-group-btn">
-                    <button class="btn btn-secondary" type="button" onclick="submitURL()">Jump!</button>
+                    <button class="btn btn-primary" type="button" onclick="submitURL()">Jump!</button>
                 </span>
                 </div>
             </div>

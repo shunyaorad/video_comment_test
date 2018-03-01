@@ -37,10 +37,12 @@ function stopVideo() {
     player.stopVideo();
 }
 
-document.getElementById("url")
+document.getElementsByName("video_url")[0]
     .addEventListener("keyup", function (event) {
         if (event.keyCode === 13) {
-            submitURL();
+            console.log("Here");
+            this.form.submit();
+            return false;
         }
     });
 
@@ -68,9 +70,9 @@ function submitComment() {
 
 
 function submitURL() {
-    var url = document.getElementById("url").value;
+    var url = document.getElementsByName("video_url")[0].value;
     url = youtube_parser(url);
-    document.getElementById("url").value = "";
+    document.getElementsByName("video_url")[0].value = "";
     var ytplayer = document.getElementById("player");
     var newURL = urlTemplate.replace(/URL/, url);
     ytplayer.setAttribute("src", newURL);

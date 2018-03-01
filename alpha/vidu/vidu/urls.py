@@ -16,9 +16,14 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from rooms import views
+from accounts import views as accounts_views
+from django.contrib.auth import views as auth_views
 
 urlpatterns = [
 	url(r'^$', views.home, name='home'),
+	url(r'^signup/$', accounts_views.signup, name='signup'),
+	url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+	url(r'^logout/$', auth_views.LogoutView.as_view(), name='logout'),
 	url(r'^rooms/(?P<pk>\d+)/$', views.show_room, name='show_room'),
 	url(r'^new_room/$', views.new_room, name='new_room'),
 	url(r'^admin/', admin.site.urls),

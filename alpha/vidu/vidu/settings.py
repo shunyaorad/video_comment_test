@@ -35,7 +35,9 @@ INSTALLED_APPS = [
 	'django.contrib.sessions',
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
+	'widget_tweaks',
 	'rooms',
+	'accounts',
 ]
 
 MIDDLEWARE = [
@@ -49,6 +51,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'vidu.urls'
+
+LOGIN_URL = 'login'
+# Default URL to redirect to after a user logs in.
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login'
+
 
 TEMPLATES = [
 	{
