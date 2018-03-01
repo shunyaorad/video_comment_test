@@ -8,7 +8,7 @@ from django.utils.text import Truncator
 class Room(models.Model):
 	name = models.CharField(max_length=30, unique=True)
 	video_url = models.CharField(max_length=100)
-	owner = models.ForeignKey(User, related_name='rooms')
+	owner = models.ForeignKey(User, related_name='rooms', on_delete=models.CASCADE)
 	last_commented = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
@@ -17,9 +17,9 @@ class Room(models.Model):
 
 class Comment(models.Model):
 	message = models.TextField(max_length=4000)
-	room = models.ForeignKey(Room, related_name='comments')
+	room = models.ForeignKey(Room, related_name='comments', on_delete=models.CASCADE)
 	created_at = models.DateTimeField(auto_now_add=True)
-	created_by = models.ForeignKey(User, related_name='comments')
+	created_by = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
 
 	def __str__(self):
 		truncated_message = Truncator(self.message)

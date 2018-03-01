@@ -1,31 +1,36 @@
 {% extends 'base.html' %}
 
 {% block breadcrumb %}
-  <li class="breadcrumb-item active">Rooms</li>
+    <li class="breadcrumb-item active">Rooms</li>
 {% endblock %}
 
 {% block content %}
-  <table class="table">
-    <thead class="thead-inverse">
-      <tr>
-        <th>Room</th>
-        <th>Friends</th>
-        <th>Comments</th>
-        <th>Last Post</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for room in rooms %}
+    <div class="mb-4">
+        <a href="{% url 'new_room' %}" class="btn btn-primary">New Room</a>
+    </div>
+    <table class="table">
+        <thead class="thead-inverse">
         <tr>
-          <td>
-            <a href="{% url 'show_room' room.pk %}">{{ room.name }}</a>
-              <a href="{{ room.video_url }}"><small class="text-muted d-block">{{ room.video_url }}</small></a>
-          </td>
-          <td class="align-middle">0</td>
-          <td class="align-middle">0</td>
-          <td></td>
+            <th>Room</th>
+            <th>Friends</th>
+            <th>Comments</th>
+            <th>Last Post</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+        </thead>
+        <tbody>
+        {% for room in rooms %}
+            <tr>
+                <td>
+                    <a href="{% url 'show_room' room.pk %}">{{ room.name }}</a>
+                    <a href="{{ room.video_url }}">
+                        <small class="text-muted d-block">{{ room.video_url }}</small>
+                    </a>
+                </td>
+                <td class="align-middle">0</td>
+                <td class="align-middle">0</td>
+                <td></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

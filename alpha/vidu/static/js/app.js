@@ -21,7 +21,6 @@ function onYouTubeIframeAPIReady() {
 }
 
 // 4. The API will call this function when the video player is ready.
-
 function onPlayerReady(event) {
     event.target.playVideo();
 }
@@ -30,15 +29,13 @@ function onPlayerReady(event) {
 //    The function indicates that when playing a video (state=1),
 //    the player should play for six seconds and then stop.
 var done = false;
-
 function onPlayerStateChange(event) {
-    console.log(player.getCurrentTime());
+    // console.log(player.getCurrentTime());
 }
 
 function stopVideo() {
     player.stopVideo();
 }
-
 
 document.getElementById("url")
     .addEventListener("keyup", function (event) {

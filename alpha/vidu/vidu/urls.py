@@ -20,5 +20,6 @@ from rooms import views
 urlpatterns = [
 	url(r'^$', views.home, name='home'),
 	url(r'^rooms/(?P<pk>\d+)/$', views.show_room, name='show_room'),
+	url(r'^new_room/$', views.new_room, name='new_room'),
 	url(r'^admin/', admin.site.urls),
 ]
