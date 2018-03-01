@@ -17,12 +17,6 @@ def home(request):
 @login_required
 def show_room(request, pk):
 	room = get_object_or_404(Room, pk=pk)
-	if request.method == 'POST':
-		url_form = NewRoomForm(request.POST)
-		if url_form.is_valid():
-			room.name = url_form.cleaned_data['name']
-			room.video_url = url_form.cleaned_data['video_url']
-			room.save()
 	url_form = NewRoomForm(instance=room)
 	comment_form = NewCommentForm()
 	return render(request, 'room.html', {'room': room, 'url_form': url_form, 'comment_form': comment_form})
@@ -37,7 +31,7 @@ def new_room(request):
 			room = form.save(commit=False)
 			room.owner = user
 			room.save()
-			return redirect('show_room', pk=room.pk)  # TODO: redirect to the created topic page
+			return redirect('show_room', pk=room.pk)
 	else:
 		form = NewRoomForm()
 	return render(request, 'new_room.html', {'form': form})
@@ -51,7 +45,6 @@ def update_room(request):
 	if request.method != 'POST':
 		raise Http404
 	# TODO: check if request contains valid fields
-	print(request.POST)
 	room = get_object_or_404(Room, pk=request.POST['room_pk'])
 	form = NewRoomForm(request.POST)
 	if form.is_valid():
@@ -85,14 +78,20 @@ def post_comment(request):
 	"""
 	if request.method != 'POST':
 		raise Http404
-
+	# TODO: check if request contains valid fields
+	print(request.POST)
 	form = NewCommentForm(request.POST)
-	post = form.save(commit=False)
 	if form.is_valid():
-		post.created_by = request.user
-		post.save()
-		response_text = convert_comment_to_dict(post)
+		print("form is valid")
+		comment = form.save(commit=False)
+		comment.created_by = request.user
+		print("Comment: " + comment.message)
+		comment.room = get_object_or_404(Room, pk=request.POST['room_pk'])
+		comment.time_stamp = request.POST['time_stamp']
+		comment.save()
+		response_text = convert_comment_to_dict(comment)
 	else:
+		print("Invalid form")
 		response_text = {'failed': 'Post is invalid'}
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
@@ -103,7 +102,7 @@ def convert_comment_to_dict(comment):
 	"""
 	response_text = {
 		'message': comment.message,
-		'created_by_pk': comment.created_by.profile.pk,
+		'created_by_pk': comment.created_by.pk,
 		'created_by': comment.created_by.username,
 		'comment_pk': comment.pk,
 		'created_at': timezone.localtime(comment.created_at).strftime("%Y-%m-%d %H:%M:%S"),

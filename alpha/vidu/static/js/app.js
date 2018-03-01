@@ -8,6 +8,9 @@ function initialize() {
     videoID = youtube_parser(videoURL);
 }
 
+//************************************************
+//******** Youtube functions ***********************
+//************************************************
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('player', {
         height: '360',
@@ -38,29 +41,20 @@ function stopVideo() {
     player.stopVideo();
 }
 
-document.getElementById("id_name")
-    .addEventListener("keyup", function (event) {
-        if (event.keyCode === 13) {
-            this.form.submit();
-            return false;
-        }
-    });
+//************************************************
+//************************************************
 
-document.getElementById("id_comment")
-    .addEventListener("keyup", function (event) {
-        if (event.keyCode === 13) {
-            submitComment();
-        }
-    });
-
-
-// Submit post
+/**
+ * Update room asychronusly
+ */
 $('#update_room').on('submit', function (event) {
     event.preventDefault();
     updateRoom(roomPK);
 });
 
-
+/**
+ * Ajax to update room info
+ */
 function updateRoom(roomPK) {
     $.ajax({
             url: url_to_update_room,
@@ -81,6 +75,44 @@ function updateRoom(roomPK) {
     )
 }
 
+/**
+ * Post comment
+ */
+$('#post_comment').on('submit', function (event) {
+    event.preventDefault();
+    postComment();
+});
+
+/**
+ * Ajax to post comment to server
+ */
+function postComment() {
+    var commentField = $('input#id_message');
+    var message = commentField.val();
+    commentField.val("");
+    var textBox = document.getElementById("text-box");
+    var currentTime = formatTime(player.getCurrentTime());
+    textBox.textContent = message + " - " + currentTime;
+    $.ajax({
+            url: url_to_post_comment,
+            type: 'POST',
+            data: {
+                room_pk: roomPK,
+                message: message,
+                time_stamp: currentTime,
+                csrfmiddlewaretoken: getCSRFToken()
+            },
+            success: function (json) {
+            },
+            error: function (xhr, errmsg, err) {
+            }
+        }
+    )
+}
+
+/**
+ * Jump video to specified time
+ */
 document.getElementById("playback-time")
     .addEventListener("keyup", function (event) {
         if (event.keyCode === 13) {
@@ -88,23 +120,6 @@ document.getElementById("playback-time")
         }
     });
 
-function submitComment() {
-    var comment = document.getElementById("id_comment").value;
-    document.getElementById("comment").value = "";
-    var textBox = document.getElementById("text-box");
-    var currentTime = formatTime(player.getCurrentTime());
-    textBox.textContent = comment + " - " + currentTime;
-}
-
-
-function submitURL() {
-    var url = document.getElementById("id_video_url").value;
-    url = youtube_parser(url);
-    document.getElementsByName("video_url")[0].value = "";
-    var ytplayer = document.getElementById("player");
-    var newURL = urlTemplate.replace(/URL/, url);
-    ytplayer.setAttribute("src", newURL);
-}
 
 function youtube_parser(url) {
     var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
@@ -131,30 +146,6 @@ function jumpTo() {
     }
     // Skip video to new time.
     player.seekTo(newTime);
-}
-
-
-/**
- * Create and save new comment under a post
- * @param event
- */
-function postComment(event) {
-    var textArea = $(event.target).parent().find("textarea");
-    $.ajax({
-            url: url_to_add_comment,
-            type: 'POST',
-            data: {
-                message: textArea.val(),
-                target_pk: textArea.attr("id"),
-                csrfmiddlewaretoken: getCSRFToken()
-            },
-            success: function (json) {
-                textArea.val(''); // remove text from the input
-            },
-            error: function (xhr, errmsg, err) {
-            }
-        }
-    )
 }
 
 

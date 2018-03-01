@@ -25,7 +25,7 @@ class NewRoomForm(forms.ModelForm):
 
 
 class NewCommentForm(forms.ModelForm):
-	comment = forms.CharField(
+	message = forms.CharField(
 		widget=forms.TextInput(
 			attrs={'rows': 1, 'placeholder': 'Post comment on the video!'}
 		),
@@ -35,5 +35,5 @@ class NewCommentForm(forms.ModelForm):
 
 	class Meta:
 		model = Comment
-		fields = ['comment']
+		fields = ['message']
 

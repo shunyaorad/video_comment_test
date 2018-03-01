@@ -16,10 +16,11 @@ class Room(models.Model):
 
 
 class Comment(models.Model):
-	message = models.TextField(max_length=4000)
+	message = models.TextField(max_length=500)
 	room = models.ForeignKey(Room, related_name='comments', on_delete=models.CASCADE)
-	created_at = models.DateTimeField(auto_now_add=True)
 	created_by = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
+	created_at = models.DateTimeField(auto_now_add=True)  # TODO: change to appropriate field
+	time_stamp = models.TextField(max_length=400)
 
 	def __str__(self):
 		truncated_message = Truncator(self.message)

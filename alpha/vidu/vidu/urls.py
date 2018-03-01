@@ -27,5 +27,6 @@ urlpatterns = [
 	url(r'^rooms/(?P<pk>\d+)/$', views.show_room, name='show_room'),
 	url(r'^new_room/$', views.new_room, name='new_room'),
 	url(r'^update_room/$', views.update_room, name='update_room'),
+	url(r'^post_comment/$', views.post_comment, name='post_comment'),
 	url(r'^admin/', admin.site.urls),
 ]
