@@ -15,7 +15,7 @@
     <div class="container">
         <div class="row justify-content-md-center">
             <div class="col-12 video-url mb-3 mt-1">
-                <form method="post" novalidate>
+                <form method="post" id="update_room" novalidate>
                     {% csrf_token %}
                     <div class="form-row align-items-center">
                         {% for field in url_form %}
@@ -39,7 +39,7 @@
                             </div>
                         {% endfor %}
                         <div class="col-auto my-1">
-                            <button type="submit" class="btn btn-primary">Update</button>
+                            <input type="submit" class="btn btn-primary" value="Update">
                         </div>
                     </div>
                 </form>
@@ -55,15 +55,15 @@
                     </div>
                 </div>
             </div>
-{#            <div class="col-12 video-url mt-4 mb-1">#}
-{#                <div class="input-group">#}
-{#                    <input id="comment" type="text" class="form-control" placeholder="Enter Comment">#}
-{#                    <span class="input-group-btn">#}
-{#                    <button id="comment_button" class="btn btn-primary" type="button"#}
-{#                            onclick="submitComment()">Submit</button>#}
-{#                </span>#}
-{#                </div>#}
-{#            </div>#}
+            {#            <div class="col-12 video-url mt-4 mb-1">#}
+            {#                <div class="input-group">#}
+            {#                    <input id="comment" type="text" class="form-control" placeholder="Enter Comment">#}
+            {#                    <span class="input-group-btn">#}
+            {#                    <button id="comment_button" class="btn btn-primary" type="button"#}
+            {#                            onclick="submitComment()">Submit</button>#}
+            {#                </span>#}
+            {#                </div>#}
+            {#            </div>#}
             <div class="col-12 video-url mt-1">
                 <form method="post" novalidate>
                     {% csrf_token %}
@@ -96,25 +96,20 @@
                 <div class="input-group">
                     <input id="playback-time" type="text" class="form-control" placeholder="Jump to">
                     <span class="input-group-btn">
-                    <button class="btn btn-primary" type="button" onclick="submitURL()">Jump!</button>
+                    <button class="btn btn-primary" type="button" onclick="jumpTo()">Jump!</button>
                 </span>
                 </div>
             </div>
         </div>
     </div>
+{% endblock %}
 
+{% block javascript %}
     <script>
         var videoURL = "{{ room.video_url }}";
+        var roomPK = "{{ room.pk }}";
+        var url_to_update_room = "{% url 'update_room' %}"
     </script>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="{% static 'js/app.js' %}" type="text/javascript"></script>
 {% endblock %}

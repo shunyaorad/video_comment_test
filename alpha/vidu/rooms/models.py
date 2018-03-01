@@ -12,7 +12,7 @@ class Room(models.Model):
 	last_commented = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
-		return "Owner: " + self.owner.username + " URL: " + str(self.video_url)
+		return "Owner: " + self.owner.username + " Name: " + str(self.name) + " URL: " + str(self.video_url)
 
 
 class Comment(models.Model):
