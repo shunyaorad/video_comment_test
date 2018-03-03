@@ -6,6 +6,9 @@ from .forms import NewRoomForm, NewCommentForm
 from django.contrib.auth.decorators import login_required
 import json
 from django.utils import timezone
+from dateutil import parser
+import pytz
+from datetime import timedelta
 
 
 @login_required
@@ -102,6 +105,7 @@ def convert_comment_to_dict(comment):
 	"""
 	response_text = {
 		'message': comment.message,
+		'time_stamp': comment.time_stamp,
 		'created_by_pk': comment.created_by.pk,
 		'created_by': comment.created_by.username,
 		'comment_pk': comment.pk,
@@ -109,3 +113,27 @@ def convert_comment_to_dict(comment):
 		'room_pk': comment.room.pk
 	}
 	return response_text
+
+
+@login_required
+def get_comment(request):
+	"""
+	Ajax way to get new comments from database
+	:param request:
+	:return:
+	"""
+	if 'last_comment_update_time' in request.GET and not request.GET['last_comment_update_time'] == '0':
+		last_update_time = parser.parse(request.GET['last_comment_update_time'])
+		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
+		# TODO: fix this time hack
+		last_update_time += timedelta(0, 1)
+		new_comments = Comment.objects.filter(created_at__gt=last_update_time).order_by('created_at')
+	else:
+		new_comments = Comment.objects.all()
+	response_text = []
+	for comment in new_comments:
+		parsed_comment = convert_comment_to_dict(comment)
+		response_text.append(parsed_comment)
+	return HttpResponse(json.dumps(response_text), content_type='application/json')
+
+

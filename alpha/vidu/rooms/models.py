@@ -24,7 +24,7 @@ class Comment(models.Model):
 
 	def __str__(self):
 		truncated_message = Truncator(self.message)
-		return truncated_message.chars(30)
+		return truncated_message.chars(30) + " TS: " + str(self.time_stamp)
 
 
 class Profile(models.Model):

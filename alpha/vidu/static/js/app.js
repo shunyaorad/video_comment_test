@@ -1,11 +1,22 @@
 var urlTemplate = "https://www.youtube.com/embed/URL?controls=1&autoplay=1&showinfo=0&rel=0&&loop=1&rel=0";
 var player;
 var videoID;
+var allComments = {};  // {time_tamp : array_of_comments}
+var lastUpdateTime = '0';
 
 window.onload = initialize();
+window.setInterval(fetchDate, 5000);
+
 
 function initialize() {
     videoID = youtube_parser(videoURL);
+    console.log("initializing");
+    getNewComments();
+}
+
+function fetchDate() {
+    getNewComments();
+    console.log(allComments);
 }
 
 //************************************************
@@ -108,6 +119,47 @@ function postComment() {
             }
         }
     )
+}
+
+/**
+ * get new comments from database
+ */
+function getNewComments() {
+    $.ajax({
+        url: url_to_get_comment,  // defined in room.html
+        type: 'GET',
+        datatype: 'json',
+        data: {
+            last_comment_update_time: lastUpdateTime
+        },
+        success: function (comments) {
+            for (var i = 0; i < comments.length; i++) {
+                lastUpdateTime = getNewUpdateTime(lastUpdateTime, comments[i]);
+            }
+            updateComments(comments);
+        }
+    })
+}
+
+/**
+ * Update comments to show in the post
+ * @param comments
+ */
+function updateComments(comments) {
+    for (var i = 0; i < comments.length; i++) {
+        allComments[comments[i]['time_stamp']] = comments[i]['message'];
+    }
+}
+
+/**
+ * Get new update time based on the Item's created time
+ */
+function getNewUpdateTime(lastUpdateTime, Item) {
+    if (new Date(lastUpdateTime).getTime() < new Date(Item['created_at']).getTime()) {
+        return Item['created_at'];
+    } else {
+        return lastUpdateTime;
+    }
 }
 
 /**
