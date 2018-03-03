@@ -2,10 +2,10 @@ var urlTemplate = "https://www.youtube.com/embed/URL?controls=1&autoplay=1&showi
 var player;
 var videoID;
 var allComments = {};  // {time_tamp : array_of_comments}
+var lastPlayingTime = -1;
 var lastUpdateTime = '0';
 
 window.onload = initialize();
-window.setInterval(fetchDate, 5000);
 
 
 function initialize() {
@@ -16,7 +16,8 @@ function initialize() {
 
 function fetchDate() {
     getNewComments();
-    console.log(allComments);
+    showComments();
+    // console.log(allComments);
 }
 
 //************************************************
@@ -28,7 +29,7 @@ function onYouTubeIframeAPIReady() {
         width: '640',
         videoId: videoID,
         events: {
-            // 'onReady': onPlayerReady,
+            'onReady': onPlayerReady
             // 'onStateChange': onPlayerStateChange
         }
     });
@@ -36,7 +37,7 @@ function onYouTubeIframeAPIReady() {
 
 // 4. The API will call this function when the video player is ready.
 function onPlayerReady(event) {
-    event.target.playVideo();
+    window.setInterval(fetchDate, 500);
 }
 
 // 5. The API calls this function when the player's state changes.
@@ -102,7 +103,7 @@ function postComment() {
     var message = commentField.val();
     commentField.val("");
     var textBox = document.getElementById("text-box");
-    var currentTime = formatTime(player.getCurrentTime());
+    var currentTime = Math.round(player.getCurrentTime());  // TODO: round is too rough. get more specific time
     textBox.textContent = message + " - " + currentTime;
     $.ajax({
             url: url_to_post_comment,
@@ -160,6 +161,23 @@ function getNewUpdateTime(lastUpdateTime, Item) {
     } else {
         return lastUpdateTime;
     }
+}
+
+function showComments() {
+    var currentTime = Math.round(player.getCurrentTime());  // TODO: replace round with something better
+    if (lastPlayingTime != currentTime) {
+        var commentsToShow = allComments[currentTime];
+        if (typeof commentsToShow != 'undefined') {
+            console.log(commentsToShow);
+            displayCommentsOnScreen(commentsToShow);
+            lastPlayingTime = currentTime;
+        }
+    }
+}
+
+function displayCommentsOnScreen(commentToShow) {
+    var textBox = document.getElementById("text-box");
+    textBox.textContent = commentToShow;
 }
 
 /**
@@ -224,3 +242,4 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+

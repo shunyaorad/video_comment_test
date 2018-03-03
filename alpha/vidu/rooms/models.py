@@ -20,7 +20,7 @@ class Comment(models.Model):
 	room = models.ForeignKey(Room, related_name='comments', on_delete=models.CASCADE)
 	created_by = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
 	created_at = models.DateTimeField(auto_now_add=True)  # TODO: change to appropriate field
-	time_stamp = models.TextField(max_length=400)
+	time_stamp = models.IntegerField()
 
 	def __str__(self):
 		truncated_message = Truncator(self.message)
