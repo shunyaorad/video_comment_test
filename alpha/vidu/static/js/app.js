@@ -29,8 +29,8 @@ function onYouTubeIframeAPIReady() {
         width: '640',
         videoId: videoID,
         events: {
-            'onReady': onPlayerReady
-            // 'onStateChange': onPlayerStateChange
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
         }
     });
 }
@@ -47,6 +47,7 @@ var done = false;
 
 function onPlayerStateChange(event) {
     // console.log(player.getCurrentTime());
+    // TODO: erase displayed comments, display comments at the new playTime
 }
 
 function stopVideo() {
@@ -102,9 +103,14 @@ function postComment() {
     var commentField = $('input#id_message');
     var message = commentField.val();
     commentField.val("");
-    var textBox = document.getElementById("text-box");
     var currentTime = Math.round(player.getCurrentTime());  // TODO: round is too rough. get more specific time
-    textBox.textContent = message + " - " + currentTime;
+    var textBox = $(".text-box").first(); // TODO: select with comment ID
+    var newCommentHTML = "<p>" + message + "</p>";
+    $(newCommentHTML).hide().appendTo(textBox).fadeIn(10, function () {
+        $(this).delay(3000).fadeOut(1000, function () {
+            $(this).remove();
+        });
+    });
     $.ajax({
             url: url_to_post_comment,
             type: 'POST',
@@ -131,7 +137,8 @@ function getNewComments() {
         type: 'GET',
         datatype: 'json',
         data: {
-            last_comment_update_time: lastUpdateTime
+            last_comment_update_time: lastUpdateTime,
+            roomPK: roomPK
         },
         success: function (comments) {
             for (var i = 0; i < comments.length; i++) {
@@ -148,7 +155,7 @@ function getNewComments() {
  */
 function updateComments(comments) {
     for (var i = 0; i < comments.length; i++) {
-        allComments[comments[i]['time_stamp']] = comments[i]['message'];
+        allComments[comments[i]['time_stamp']] = comments[i];
     }
 }
 
@@ -163,6 +170,7 @@ function getNewUpdateTime(lastUpdateTime, Item) {
     }
 }
 
+// TODO: only what to show certain amount of time. Fade away the comments.
 function showComments() {
     var currentTime = Math.round(player.getCurrentTime());  // TODO: replace round with something better
     if (lastPlayingTime != currentTime) {
@@ -175,9 +183,15 @@ function showComments() {
     }
 }
 
+// TODO: parse the list of comments. Instead of changing whole textContent.
 function displayCommentsOnScreen(commentToShow) {
-    var textBox = document.getElementById("text-box");
-    textBox.textContent = commentToShow;
+    var textBox = $(".text-box").first(); // TODO: select with comment ID
+    var newCommentHTML = "<p>" + commentToShow['message'] + "</p><p>" + commentToShow['created_by'] + "</p>";
+    $(newCommentHTML).hide().appendTo(textBox).fadeIn(1000, function () {
+        $(this).delay(3000).fadeOut(1000, function () {
+            $(this).remove();
+        });
+    });
 }
 
 /**

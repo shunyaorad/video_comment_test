@@ -122,14 +122,17 @@ def get_comment(request):
 	:param request:
 	:return:
 	"""
+	if 'roomPK' not in request.GET:
+		return HttpResponse(json.dumps({}), content_type='application/json')
+	room = get_object_or_404(Room, pk=request.GET['roomPK'])
 	if 'last_comment_update_time' in request.GET and not request.GET['last_comment_update_time'] == '0':
 		last_update_time = parser.parse(request.GET['last_comment_update_time'])
 		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
 		# TODO: fix this time hack
 		last_update_time += timedelta(0, 1)
-		new_comments = Comment.objects.filter(created_at__gt=last_update_time).order_by('created_at')
+		new_comments = Comment.objects.filter(room=room, created_at__gt=last_update_time)
 	else:
-		new_comments = Comment.objects.all()
+		new_comments = Comment.objects.filter(room=room)
 	response_text = []
 	for comment in new_comments:
 		parsed_comment = convert_comment_to_dict(comment)
