@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
-from .models import Room, Comment, Profile
+from .models import Room, Comment, Profile, Invitation
 from .forms import NewRoomForm, NewCommentForm, InvitationForm
 from django.contrib.auth.decorators import login_required
 import json
@@ -14,7 +14,8 @@ from datetime import timedelta
 @login_required
 def home(request):
 	rooms = request.user.profile.visible_rooms.all()
-	invitations = request.user.profile.invitations.all()
+	invitations = Invitation.objects.filter(invited_profile=request.user.profile)
+
 	return render(request, 'home.html', {'rooms': rooms, 'invitations': invitations})
 
 
@@ -86,11 +87,16 @@ def convert_room_info_to_dict(room):
 @login_required
 def invite(request):
 	# TODO: Check if request.POST contains all fields needed
-	room = get_object_or_404(Room, pk=request.POST['room_pk'])
-	invited_profile = Profile.objects.filter(username=request.POST['username'])[
-		0]  # TODO: If user does not exist send failed message
-	invited_profile.invitations.add(room)
-	response_text = {"invited_username": invited_profile.username}
+	invitation_form = InvitationForm(request.POST)
+	if invitation_form.is_valid():
+		print("invitation form is valid")
+		room = get_object_or_404(Room, pk=request.POST['room_pk'])
+		invited_profile = Profile.objects.filter(username=invitation_form.cleaned_data['username'])[0]
+		invitation = Invitation(room=room, invited_profile=invited_profile)
+		invitation.save()
+		response_text = {"invited_username": invited_profile.username}
+	else:
+		response_text = {"invited_username": None}
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
 
@@ -105,7 +111,7 @@ def respond(request):
 		response_text = {'response': 'accept'}
 	else:
 		response_text = {'response': 'decline'}
-	profile.invitations.remove(room)
+	Invitation.objects.filter(room=room, invited_profile=profile).delete()  # TODO: check if there is better way to filter
 
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
@@ -145,7 +151,7 @@ def convert_comment_to_dict(comment):
 		'created_by_pk': comment.created_by.pk,
 		'created_by': comment.created_by.username,
 		'comment_pk': comment.pk,
-		'created_at': timezone.localtime(comment.created_at).strftime("%Y-%m-%d %H:%M:%S"),
+		'created_at': timezone.localtime(comment.created_at).strftime("%m/%d/%Y %H:%M:%S"),
 		'room_pk': comment.room.pk
 	}
 	return response_text
@@ -174,3 +180,44 @@ def get_comment(request):
 		parsed_comment = convert_comment_to_dict(comment)
 		response_text.append(parsed_comment)
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
+
+
+@login_required
+def get_invitations(request):
+	"""
+	Ajax way to get new comments from database
+	:param request:
+	:return:
+	"""
+	# TODO: check valid request.POST
+	profile = request.user.profile
+	if 'last_update_time' in request.GET and not request.GET['last_update_time'] == '0':
+		last_update_time = parser.parse(request.GET['last_update_time'])
+		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
+		# TODO: fix this time hack
+		last_update_time += timedelta(0, 1)
+		new_invitations = Invitation.objects.filter(
+			invited_profile=profile, created_at__gt=last_update_time
+		).order_by('created_at')
+	else:
+		new_invitations = Invitation.objects.filter(invited_profile=profile).order_by('created_at')
+	response_text = []
+	for invitation in new_invitations:
+		parsed_invitation = convert_invitation_to_dict(invitation)
+		response_text.append(parsed_invitation)
+	return HttpResponse(json.dumps(response_text), content_type='application/json')
+
+
+def convert_invitation_to_dict(invitation):
+	"""
+	Convert from post object to json which contains created user info
+	"""
+	response_text = {
+		'name': invitation.room.name,
+		'room_pk': invitation.room.pk,
+		'owner': invitation.room.owner.username,
+		'owner_pk': invitation.room.owner.pk,
+		'video_url': invitation.room.video_url,
+		'created_at': timezone.localtime(invitation.created_at).strftime("%m/%d/%Y %H:%M:%S")
+	}
+	return response_text

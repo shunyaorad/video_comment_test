@@ -14,7 +14,7 @@ function initialize() {
     getNewComments();
 }
 
-function fetchDate() {
+function fetchData() {
     getNewComments();
     showComments();
     // console.log(allComments);
@@ -37,7 +37,7 @@ function onYouTubeIframeAPIReady() {
 
 // 4. The API will call this function when the video player is ready.
 function onPlayerReady(event) {
-    window.setInterval(fetchDate, 500);
+    window.setInterval(fetchData, 500);
 }
 
 // 5. The API calls this function when the player's state changes.
@@ -83,6 +83,37 @@ function updateRoom(roomPK) {
                 player.cueVideoById(youtube_parser(json['video_url']));
             },
             error: function (xhr, errmsg, err) {
+            }
+        }
+    )
+}
+
+
+$('#invitation_form').on('submit', function (event) {
+    console.log("here");
+    event.preventDefault();
+    invite(roomPK);
+});
+
+/**
+ * Ajax to update room info
+ */
+function invite(roomPK) {
+    var invited_username = $('input#id_username').val();
+    $('input#id_username').val("");
+    $.ajax({
+            url: url_to_invite,
+            type: 'POST',
+            data: {
+                room_pk: roomPK,
+                username: invited_username,
+                csrfmiddlewaretoken: getCSRFToken()
+            },
+            success: function (json) {
+                alert("Invited " + invited_username);
+            },
+            error: function (xhr, errmsg, err) {
+                alert("Failed to invite " + invited_username);
             }
         }
     )
@@ -200,7 +231,7 @@ function displayCommentsOnScreen(commentToShow) {
 function flow() {
     $(".vid-comment").animate({
         left: "-100px" // end position TODO: change end position based on the length of comment
-    }, 6000, function() {
+    }, 6000, function () {
         $(this).remove();
     })
 }
