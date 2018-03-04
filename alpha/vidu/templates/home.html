@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
+{% load widget_tweaks %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item active">Rooms</li>
@@ -33,4 +35,38 @@
         {% endfor %}
         </tbody>
     </table>
+    <table class="table">
+        <thead class="thead-inverse">
+        <tr>
+            <th>Invitations</th>
+            <th>Owner</th>
+            <th>Response</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for room in invitations %}
+            <tr>
+                <td>
+                    <a href="{% url 'show_room' room.pk %}">{{ room.name }}</a>
+                    <a href="{{ room.video_url }}">
+                        <small class="text-muted d-block">{{ room.video_url }}</small>
+                    </a>
+                </td>
+                <td class="align-middle">{{ room.owner }}</td>
+                <td class="align-middle">
+                    <input type="submit" class="btn btn-primary invitation-response" value="Accept" name="{{ room.pk }}">
+                    <input type="submit" class="btn btn-danger invitation-response" value="Decline" name="{{ room.pk }}">
+                    {% csrf_token %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        var url_to_respond = "{% url 'respond' %}"
+    </script>
+    <script src="{% static 'js/home.js' %}" type="text/javascript"></script>
 {% endblock %}

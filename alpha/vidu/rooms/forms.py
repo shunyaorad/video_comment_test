@@ -37,3 +37,11 @@ class NewCommentForm(forms.ModelForm):
 		model = Comment
 		fields = ['message']
 
+
+class InvitationForm(forms.Form):
+	username = forms.CharField(
+		widget=forms.TextInput(
+			attrs={'rows': 1, 'placeholder': 'Who do you want to invite to this room?'}
+		),
+		max_length=20,
+	)

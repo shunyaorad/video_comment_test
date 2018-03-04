@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
-from .models import Room, Comment
-from .forms import NewRoomForm, NewCommentForm
+from .models import Room, Comment, Profile
+from .forms import NewRoomForm, NewCommentForm, InvitationForm
 from django.contrib.auth.decorators import login_required
 import json
 from django.utils import timezone
@@ -14,7 +14,8 @@ from datetime import timedelta
 @login_required
 def home(request):
 	rooms = request.user.profile.visible_rooms.all()
-	return render(request, 'home.html', {'rooms': rooms})
+	invitations = request.user.profile.invitations.all()
+	return render(request, 'home.html', {'rooms': rooms, 'invitations': invitations})
 
 
 @login_required
@@ -22,7 +23,13 @@ def show_room(request, pk):
 	room = get_object_or_404(Room, pk=pk)
 	url_form = NewRoomForm(instance=room)
 	comment_form = NewCommentForm()
-	return render(request, 'room.html', {'room': room, 'url_form': url_form, 'comment_form': comment_form})
+	invitation_form = InvitationForm()
+	return render(request, 'room.html', {
+		'room': room,
+		'url_form': url_form,
+		'comment_form': comment_form,
+		'invitation_form': invitation_form
+	})
 
 
 @login_required
@@ -74,6 +81,33 @@ def convert_room_info_to_dict(room):
 		'room_pk': room.pk
 	}
 	return response_text
+
+
+@login_required
+def invite(request):
+	# TODO: Check if request.POST contains all fields needed
+	room = get_object_or_404(Room, pk=request.POST['room_pk'])
+	invited_profile = Profile.objects.filter(username=request.POST['username'])[
+		0]  # TODO: If user does not exist send failed message
+	invited_profile.invitations.add(room)
+	response_text = {"invited_username": invited_profile.username}
+	return HttpResponse(json.dumps(response_text), content_type='application/json')
+
+
+@login_required
+def respond(request):
+	# TODO: Check if request.POST contains all fields needed
+	profile = request.user.profile
+	response = request.POST['response']
+	room = get_object_or_404(Room, pk=request.POST['room_pk'])
+	if response.lower() == 'accept':
+		profile.visible_rooms.add(room)
+		response_text = {'response': 'accept'}
+	else:
+		response_text = {'response': 'decline'}
+	profile.invitations.remove(room)
+
+	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
 
 @login_required
@@ -140,5 +174,3 @@ def get_comment(request):
 		parsed_comment = convert_comment_to_dict(comment)
 		response_text.append(parsed_comment)
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
-
-

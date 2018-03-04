@@ -78,6 +78,34 @@
                         </div>
                     </div>
                 </form>
+                <form method="post" id="invitation_form">
+                    {% csrf_token %}
+                    <div class="form-row align-items-center">
+                        {% for field in invitation_form %}
+                            <div class="form-group col-10 my-1">
+                                <div class="col pl-0">
+                                    {% if form.is_bound %}
+                                        {% if field.errors %}
+                                            {% render_field field class="form-control is-invalid" %}
+                                            {% for error in field.errors %}
+                                                <div class="invalid-feedback">
+                                                    {{ error }}
+                                                </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            {% render_field field class="form-control is-valid" %}
+                                        {% endif %}
+                                    {% else %}
+                                        {% render_field field class="form-control" %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="col-auto my-1">
+                            <input type="submit" class="btn btn-primary" value="Invite">
+                        </div>
+                    </div>
+                </form>
                 <div class="input-group">
                     <input id="playback-time" type="text" class="form-control" placeholder="Jump to">
                     <span class="input-group-btn">
@@ -96,6 +124,7 @@
         var url_to_update_room = "{% url 'update_room' %}";
         var url_to_post_comment = "{% url 'post_comment' %}";
         var url_to_get_comment = "{% url 'get_comment' %}";
+        var url_to_invite = "{% url 'invite' %}";
     </script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="{% static 'js/app.js' %}" type="text/javascript"></script>
