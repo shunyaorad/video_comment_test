@@ -1,37 +1,28 @@
 .video-url {
     margin: 10% 0;
 }
-.video-content {
+
+#video-content {
+    position: relative;
     margin: 0 0;
-    /*z-index: -99;*/
-    /* z-index will disable video control */
+    overflow: hidden;
+    padding: 0 0;
+    width: 100%;
+    height: 100%;
 }
 
-.vid-info {
+.vid-comment {
     position: absolute;
     top: 0;
-    right: 3%;
-    width: 30%;
-    background: rgba(0, 0, 0, 0.3);
+    right: -100px;
+    width: 200px;
     color: #fff;
-    padding: 1rem;
     font-family: Avenir, Helvetica, sans-serif;
+    font-size: 20px;
+    display: inline-block;
 }
 
-.vid-info h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-top: 0;
-    line-height: 1.2;
-}
-
-.vid-info a {
-    display: block;
+.vid-comment a {
     color: #fff;
-    text-decoration: none;
-    background: rgba(0, 0, 0, 0.5);
-    transition: .6s background;
-    border-bottom: none;
-    margin: 1rem auto;
-    text-align: center;
+    display: inline-block;
 }

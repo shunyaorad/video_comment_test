@@ -31,11 +31,12 @@ class Profile(models.Model):
 	profile_photo = models.FileField(upload_to="images", null=True, blank=True)
 	content_type = models.CharField(max_length=50, null=True, blank=True)
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
-	last_name = models.CharField(max_length=20)
-	first_name = models.CharField(max_length=20)
+	last_name = models.CharField(max_length=20, null=True, blank=True)
+	first_name = models.CharField(max_length=20, null=True, blank=True)
 	username = models.CharField(max_length=20)
 	email = models.CharField(blank=True, max_length=32)
-	update_time = models.DateTimeField(null=True)
+	visible_rooms = models.ManyToManyField(Room, related_name="visible_rooms", null=True, blank=True)
+	invitations = models.ManyToManyField(Room, related_name="invitations", null=True, blank=True)
 
 	def __unicode__(self):
 		return 'Entry(id=' + str(self.id) + ')'

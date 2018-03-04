@@ -104,13 +104,13 @@ function postComment() {
     var message = commentField.val();
     commentField.val("");
     var currentTime = Math.round(player.getCurrentTime());  // TODO: round is too rough. get more specific time
-    var textBox = $(".text-box").first(); // TODO: select with comment ID
-    var newCommentHTML = "<p>" + message + "</p>";
-    $(newCommentHTML).hide().appendTo(textBox).fadeIn(10, function () {
-        $(this).delay(3000).fadeOut(1000, function () {
-            $(this).remove();
-        });
-    });
+    // var textBox = $(".text-box").first(); // TODO: select with comment ID
+    // var newCommentHTML = "<p>" + message + "</p>";
+    // $(newCommentHTML).hide().appendTo(textBox).fadeIn(10, function () {
+    //     $(this).delay(3000).fadeOut(1000, function () {
+    //         $(this).remove();
+    //     });
+    // });
     $.ajax({
             url: url_to_post_comment,
             type: 'POST',
@@ -185,13 +185,24 @@ function showComments() {
 
 // TODO: parse the list of comments. Instead of changing whole textContent.
 function displayCommentsOnScreen(commentToShow) {
-    var textBox = $(".text-box").first(); // TODO: select with comment ID
-    var newCommentHTML = "<p>" + commentToShow['message'] + "</p><p>" + commentToShow['created_by'] + "</p>";
-    $(newCommentHTML).hide().appendTo(textBox).fadeIn(1000, function () {
-        $(this).delay(3000).fadeOut(1000, function () {
-            $(this).remove();
-        });
+    // var videoScreen = document.getElementsByClassName("vidtop-content")[0];
+    var videoScreen = $("#video-content");
+    // console.log(videoScreen);
+    var newCommentHTML = "<div class='vid-comment'><p>" +
+        commentToShow['message'] + "</p><p>" + commentToShow['created_by'] + "</p></div>";
+    videoScreen.append(newCommentHTML);
+    $(function () {
+        setTimeout('flow()');
     });
+}
+
+
+function flow() {
+    $(".vid-comment").animate({
+        left: "-100px" // end position TODO: change end position based on the length of comment
+    }, 6000, function() {
+        $(this).remove();
+    })
 }
 
 /**

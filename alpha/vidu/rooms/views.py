@@ -13,7 +13,7 @@ from datetime import timedelta
 
 @login_required
 def home(request):
-	rooms = Room.objects.filter(owner=request.user)
+	rooms = request.user.profile.visible_rooms.all()
 	return render(request, 'home.html', {'rooms': rooms})
 
 
@@ -28,12 +28,14 @@ def show_room(request, pk):
 @login_required
 def new_room(request):
 	user = request.user
+	profile = user.profile
 	if request.method == 'POST':
 		form = NewRoomForm(request.POST)
 		if form.is_valid():
 			room = form.save(commit=False)
 			room.owner = user
 			room.save()
+			profile.visible_rooms.add(room)
 			return redirect('show_room', pk=room.pk)
 	else:
 		form = NewRoomForm()
