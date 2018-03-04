@@ -51,21 +51,30 @@ function showInvitation(invitation) {
     var invitationTable = $("#invitation-table");
     var newInvitationHTML = "<tr><td><a>" + invitation['name'] + "</a></td>" +
         "<td class='align-middle'>" + invitation['owner'] + "</td>" + "<td class='align-middle'>" +
-        "<input type='submit' class='btn btn-primary invitation-response' value='Accept' name=" + invitation['room_pk'] + ">" +
-        "<input type='submit' class='btn btn-danger invitation-response' value='Decline' name=" + invitation['room_pk'] + ">" +
+        "<input onClick='respond_invitation(event)' type='submit' class='btn btn-primary invitation-response' value='Accept' name=" + invitation['room_pk'] + ">" +
+        "<input onClick='respond_invitation(event)' type='submit' class='btn btn-danger invitation-response' value='Decline' name=" + invitation['room_pk'] + ">" +
         "" + "</td></tr>";
-        invitationTable.append(newInvitationHTML);
+    invitationTable.append(newInvitationHTML);
 }
 
 /**
  *  Respond invitation
  */
-$('.invitation-response').on('click', function (event) {
+// $('.invitation-response').on('click', function (event) {
+//     event.preventDefault();
+//     console.log("here");
+//     var response = $(this).attr('value');  // Accept or Decline
+//     var response_room_pk = $(this).attr('name');
+//     respond(response_room_pk, response);
+// });
+
+function respond_invitation(event) {
     event.preventDefault();
-    var response = $(this).attr('value');  // Accept or Decline
-    var response_room_pk = $(this).attr('name');
+    var srcElement = event.srcElement;
+    var response = srcElement.value;  // Accept or Decline
+    var response_room_pk = srcElement.name;
     respond(response_room_pk, response);
-});
+}
 
 /**
  * Ajax to send invitation
