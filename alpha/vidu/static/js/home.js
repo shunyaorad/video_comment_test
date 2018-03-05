@@ -1,7 +1,7 @@
 var lastUpdateTime = '0';
 
 window.onload = initialize();
-window.setInterval(fetchData(), 500);
+window.setInterval(fetchData, 500);
 
 function initialize() {
     console.log("initializing");
@@ -9,6 +9,7 @@ function initialize() {
 }
 
 function fetchData() {
+    console.log("lastUpdateTime: " + lastUpdateTime);
     getNewInvitation();
 }
 
@@ -56,17 +57,6 @@ function showInvitation(invitation) {
         "" + "</td></tr>";
     invitationTable.append(newInvitationHTML);
 }
-
-/**
- *  Respond invitation
- */
-// $('.invitation-response').on('click', function (event) {
-//     event.preventDefault();
-//     console.log("here");
-//     var response = $(this).attr('value');  // Accept or Decline
-//     var response_room_pk = $(this).attr('name');
-//     respond(response_room_pk, response);
-// });
 
 function respond_invitation(event) {
     event.preventDefault();

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Room, Comment
+from .models import Room, Comment, Invitation
 
 
 class NewRoomForm(forms.ModelForm):
@@ -38,10 +38,14 @@ class NewCommentForm(forms.ModelForm):
 		fields = ['message']
 
 
-class InvitationForm(forms.Form):
+class InvitationForm(forms.ModelForm):
 	username = forms.CharField(
 		widget=forms.TextInput(
 			attrs={'rows': 1, 'placeholder': 'Who do you want to invite to this room?'}
 		),
 		max_length=20,
 	)
+
+	class Meta:
+		model = Invitation
+		fields = ['username']

@@ -14,9 +14,7 @@ from datetime import timedelta
 @login_required
 def home(request):
 	rooms = request.user.profile.visible_rooms.all()
-	invitations = Invitation.objects.filter(invited_profile=request.user.profile)
-
-	return render(request, 'home.html', {'rooms': rooms, 'invitations': invitations})
+	return render(request, 'home.html', {'rooms': rooms})
 
 
 @login_required
@@ -89,11 +87,13 @@ def invite(request):
 	# TODO: Check if request.POST contains all fields needed
 	invitation_form = InvitationForm(request.POST)
 	if invitation_form.is_valid():
-		print("invitation form is valid")
 		room = get_object_or_404(Room, pk=request.POST['room_pk'])
 		invited_profile = Profile.objects.filter(username=invitation_form.cleaned_data['username'])[0]
-		invitation = Invitation(room=room, invited_profile=invited_profile)
-		invitation.save()
+		# create invitation only if the user does not contain this room in his visible rooms
+		if not invited_profile.visible_rooms.filter(pk=room.pk).exists() and \
+				not Invitation.objects.filter(room=room, invited_profile=invited_profile).exists():
+			invitation = Invitation(room=room, invited_profile=invited_profile)
+			invitation.save()
 		response_text = {"invited_username": invited_profile.username}
 	else:
 		response_text = {"invited_username": None}
@@ -111,7 +111,8 @@ def respond(request):
 		response_text = {'response': 'accept'}
 	else:
 		response_text = {'response': 'decline'}
-	Invitation.objects.filter(room=room, invited_profile=profile).delete()  # TODO: check if there is better way to filter
+	Invitation.objects.filter(room=room,
+	                          invited_profile=profile).delete()  # TODO: check if there is better way to filter
 
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
