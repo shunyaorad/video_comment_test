@@ -56,11 +56,41 @@ function showRoom(room) {
                 room['owner'] +
             "</td>" +
             "<td class='align-middle'>" +
-                "<input onClick='respond_invitation(event)' type='submit' class='btn btn-danger invitation-response' " +
+                "<input onClick='deleteRoomPush(event)' type='submit' class='btn btn-danger invitation-response' " +
                         "value='Delete' name=" + room['room_pk'] + ">" +
             "</td>" +
         "</tr>";
     visibleRoomTable.append(newInvitationHTML);
+}
+
+
+function deleteRoomPush(event) {
+    event.preventDefault();
+    var srcElement = event.srcElement;
+    var roomToDelete = srcElement.name;
+    deleteRoom(roomToDelete, srcElement);
+}
+
+/**
+ * Ajax to delete room
+ */
+function deleteRoom(roomToDeletee, srcElement) {
+    $.ajax({
+            url: url_to_delete_room,
+            type: 'POST',
+            data: {
+                room_pk: roomToDeletee,
+                csrfmiddlewaretoken: getCSRFToken()
+            },
+            success: function (json) {
+                console.log(json);
+                $(srcElement).closest("tr").remove();
+            },
+            error: function (xhr, errmsg, err) {
+                console.log(errmsg)
+            }
+        }
+    )
 }
 
 /**
@@ -80,6 +110,7 @@ function getNewInvitation() {
                 showInvitation(invitations[i]);
             }
             var invitationTable = $("#invitation-table");
+            // var invitationTable = $("#visible-room-table");
             var csrfTokenHTML = "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf_token + "'/>";
             invitationTable.append(csrfTokenHTML);
 
@@ -100,6 +131,7 @@ function getNewUpdateTime(lastUpdateTime, Item) {
 
 function showInvitation(invitation) {
     var invitationTable = $("#invitation-table");
+    // var invitationTable = $("#visible-room-table");
     var newInvitationHTML = "<tr><td><a>" + invitation['name'] + "</a></td>" +
         "<td class='align-middle'>" + invitation['owner'] + "</td>" + "<td class='align-middle'>" +
         "<input onClick='respond_invitation(event)' type='submit' class='btn btn-primary invitation-response' value='Accept' name=" + invitation['room_pk'] + ">" +

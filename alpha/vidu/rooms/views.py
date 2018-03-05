@@ -119,6 +119,21 @@ def respond(request):
 
 
 @login_required
+def delete_room(request):
+	# TODO: Check if request.POST contains all fields needed
+	profile = request.user.profile
+	room = get_object_or_404(Room, pk=request.POST['room_pk'])
+	if room.owner == request.user:  # if the owner of the room deletes, delete the entire from database
+		room.delete()
+		response_text = {'response': 'deleted room from database'}
+	else:  # if not the owner of the room, delete the room from visible_rooms
+		profile.visible_rooms.remove(room)
+		response_text = {'response': 'deleted from visible_rooms'}
+
+	return HttpResponse(json.dumps(response_text), content_type='application/json')
+
+
+@login_required
 def post_comment(request):
 	"""
 	Ajax way to add new post

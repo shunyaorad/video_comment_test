@@ -13,8 +13,8 @@
     <table class="table">
         <thead class="thead-inverse">
         <tr>
-            <th>Room</th>
-            <th>Owner</th>
+            <th class="text-left">Room</th>
+            <th class="text-left">Owner</th>
             <th></th>
         </tr>
         </thead>
@@ -24,9 +24,9 @@
     <table class="table">
         <thead class="thead-inverse">
         <tr>
-            <th>Invitations</th>
-            <th>Owner</th>
-            <th>Response</th>
+            <th class="text-left">Invitations</th>
+            <th class="text-left">Owner</th>
+            <th></th>
         </tr>
         </thead>
         <tbody id="invitation-table">
@@ -40,6 +40,7 @@
         var url_to_respond = "{% url 'respond' %}";
         var url_to_get_invitations = "{% url 'get_invitations' %}";
         var url_to_get_rooms = "{% url 'get_rooms' %}";
+        var url_to_delete_room = "{% url 'delete_room'%}";
         var csrf_token = "{{ csrf_token }}"
     </script>
     <script src="{% static 'js/home.js' %}" type="text/javascript"></script>

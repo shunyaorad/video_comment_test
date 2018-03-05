@@ -32,6 +32,7 @@ urlpatterns = [
 	url(r'^invite/$', views.invite, name='invite'),
 	url(r'^respond/$', views.respond, name='respond'),
 	url(r'^get_rooms/$', views.get_rooms, name='get_rooms'),
+	url(r'^delete_room/$', views.delete_room, name='delete_room'),
 	url(r'^get_invitations/$', views.get_invitations, name='get_invitations'),
 	url(r'^admin/', admin.site.urls),
 ]
