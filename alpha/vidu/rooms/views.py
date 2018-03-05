@@ -77,7 +77,8 @@ def convert_room_info_to_dict(room):
 		'video_url': room.video_url,
 		'owner': room.owner.username,
 		'owner_pk': room.owner.pk,
-		'room_pk': room.pk
+		'room_pk': room.pk,
+		'created_at': timezone.localtime(room.created_at).strftime("%m/%d/%Y %H:%M:%S"),
 	}
 	return response_text
 
@@ -125,19 +126,15 @@ def post_comment(request):
 	if request.method != 'POST':
 		raise Http404
 	# TODO: check if request contains valid fields
-	print(request.POST)
 	form = NewCommentForm(request.POST)
 	if form.is_valid():
-		print("form is valid")
 		comment = form.save(commit=False)
 		comment.created_by = request.user
-		print("Comment: " + comment.message)
 		comment.room = get_object_or_404(Room, pk=request.POST['room_pk'])
 		comment.time_stamp = request.POST['time_stamp']
 		comment.save()
 		response_text = convert_comment_to_dict(comment)
 	else:
-		print("Invalid form")
 		response_text = {'failed': 'Post is invalid'}
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
@@ -180,6 +177,30 @@ def get_comment(request):
 	for comment in new_comments:
 		parsed_comment = convert_comment_to_dict(comment)
 		response_text.append(parsed_comment)
+	return HttpResponse(json.dumps(response_text), content_type='application/json')
+
+
+@login_required
+def get_rooms(request):
+	"""
+	Ajax way to get new comments from database
+	:param request:
+	:return:
+	"""
+	# TODO: check valid request.POST
+	profile = request.user.profile
+	if 'last_room_update_time' in request.GET and not request.GET['last_room_update_time'] == '0':
+		last_update_time = parser.parse(request.GET['last_room_update_time'])
+		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
+		# TODO: fix this time hack
+		last_update_time += timedelta(0, 1)
+		new_rooms = profile.visible_rooms.filter(created_at__gt=last_update_time).order_by('created_at')
+	else:
+		new_rooms = profile.visible_rooms.all()
+	response_text = []
+	for room in new_rooms:
+		parsed_room = convert_room_info_to_dict(room)
+		response_text.append(parsed_room)
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
 

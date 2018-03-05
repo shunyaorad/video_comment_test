@@ -1,4 +1,5 @@
-var lastUpdateTime = '0';
+var lastInvitationUpdateTime = '0';
+var lastRoomUpdateTime = '0';
 
 window.onload = initialize();
 window.setInterval(fetchData, 500);
@@ -9,8 +10,57 @@ function initialize() {
 }
 
 function fetchData() {
-    console.log("lastUpdateTime: " + lastUpdateTime);
+    getNewRooms();
     getNewInvitation();
+}
+
+/**
+ * get new invitations from database
+ */
+function getNewRooms() {
+    $.ajax({
+        url: url_to_get_rooms,  // defined in room.html
+        type: 'GET',
+        datatype: 'json',
+        data: {
+            last_room_update_time: lastRoomUpdateTime
+        },
+        success: function (rooms) {
+            for (var i = 0; i < rooms.length; i++) {
+                lastRoomUpdateTime = getNewUpdateTime(lastRoomUpdateTime, rooms[i]);
+                showRoom(rooms[i]);
+            }
+            //TODO: insert form for delete the room
+            var visibleRoomTable = $("#visible-room-table");
+            var csrfTokenHTML = "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf_token + "'/>";
+            visibleRoomTable.append(csrfTokenHTML);
+
+        }
+    })
+}
+
+function showRoom(room) {
+    var roomURL = url_to_show_room.replace(/0/, room['room_pk']);
+    var visibleRoomTable = $("#visible-room-table");
+    var newInvitationHTML =
+        "<tr>" +
+            "<td class='align-middle'>" +
+                "<a href='" + roomURL + "'>" + room['name'] + "</a>" +
+                "<a href='" + room['video_url'] + "'>" +
+                    "<small class='text-muted d-block'>" +
+                        room['video_url'] +
+                    "</small>" +
+                "</a>" +
+            "</td>" +
+            "<td class='align-middle'>" +
+                room['owner'] +
+            "</td>" +
+            "<td class='align-middle'>" +
+                "<input onClick='respond_invitation(event)' type='submit' class='btn btn-danger invitation-response' " +
+                        "value='Delete' name=" + room['room_pk'] + ">" +
+            "</td>" +
+        "</tr>";
+    visibleRoomTable.append(newInvitationHTML);
 }
 
 /**
@@ -22,15 +72,15 @@ function getNewInvitation() {
         type: 'GET',
         datatype: 'json',
         data: {
-            last_update_time: lastUpdateTime
+            last_update_time: lastInvitationUpdateTime
         },
         success: function (invitations) {
             for (var i = 0; i < invitations.length; i++) {
-                lastUpdateTime = getNewUpdateTime(lastUpdateTime, invitations[i]);
+                lastInvitationUpdateTime = getNewUpdateTime(lastInvitationUpdateTime, invitations[i]);
                 showInvitation(invitations[i]);
             }
             var invitationTable = $("#invitation-table");
-            var csrfTokenHTML = "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf_token + "'/>"
+            var csrfTokenHTML = "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf_token + "'/>";
             invitationTable.append(csrfTokenHTML);
 
         }

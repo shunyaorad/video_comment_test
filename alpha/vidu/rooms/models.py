@@ -37,7 +37,6 @@ class Profile(models.Model):
 	username = models.CharField(max_length=20)
 	email = models.CharField(blank=True, max_length=32)
 	visible_rooms = models.ManyToManyField(Room, related_name="visible_rooms", blank=True)
-	# invitations = models.ManyToManyField(Room, related_name="invitations", null=True, blank=True)
 
 	def __unicode__(self):
 		return 'Entry(id=' + str(self.id) + ')'
@@ -57,10 +56,3 @@ class Invitation(models.Model):
 
 	class Meta:
 		unique_together = ['room', 'invited_profile']
-
-	def as_dict(self):
-		return {
-			"room_pk": self.room.pk,
-			"room_name": self.room.name,
-			"room_owner": self.room.owner.username
-		}
