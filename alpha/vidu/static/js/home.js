@@ -63,13 +63,13 @@ function respond_invitation(event) {
     var srcElement = event.srcElement;
     var response = srcElement.value;  // Accept or Decline
     var response_room_pk = srcElement.name;
-    respond(response_room_pk, response);
+    respond(response_room_pk, response, srcElement);
 }
 
 /**
  * Ajax to send invitation
  */
-function respond(responseRoomPK, response) {
+function respond(responseRoomPK, response, srcElement) {
     $.ajax({
             url: url_to_respond,
             type: 'POST',
@@ -79,6 +79,7 @@ function respond(responseRoomPK, response) {
                 csrfmiddlewaretoken: getCSRFToken()
             },
             success: function (json) {
+                $(srcElement).closest("tr").remove();
             },
             error: function (xhr, errmsg, err) {
             }
