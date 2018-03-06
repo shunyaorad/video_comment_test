@@ -1,37 +1,37 @@
-var lastInvitationUpdateTime;
-var lastRoomUpdateTime;
+var lastConnectionUpdateTime;
 
 window.onload = initialize();
 window.setInterval(fetchData, 500);
 
 function initialize() {
     console.log("initializing");
-    lastInvitationUpdateTime = '0';
-    lastRoomUpdateTime = '0';
+    lastConnectionUpdateTime = '0';
 }
 
 function fetchData() {
-    // console.log("lastInvitationUpdateTime: " + lastInvitationUpdateTime);
-    // console.log("lastRoomUpdateTime: " + lastRoomUpdateTime);
-    getNewRooms();
-    getNewInvitation();
+    getNewConnections();
 }
-
 /**
- * get new invitations from database
+ * get new connections from database
  */
-function getNewRooms() {
+function getNewConnections() {
     $.ajax({
-        url: url_to_get_rooms,  // defined in room.html
+        url: url_to_get_connections,  // defined in room.html
         type: 'GET',
         datatype: 'json',
         data: {
-            last_room_update_time: lastRoomUpdateTime
+            last_connection_update_time: lastConnectionUpdateTime
         },
         success: function (rooms) {
             for (var i = 0; i < rooms.length; i++) {
-                lastRoomUpdateTime = getNewUpdateTime(lastRoomUpdateTime, rooms[i]);
-                showRoom(rooms[i]);
+                lastConnectionUpdateTime = getNewUpdateTime(lastConnectionUpdateTime, rooms[i]);
+                if (rooms[i]['visible']) {
+                    console.log("visible room");
+                    showRoom(rooms[i]);
+                } else {
+                    console.log("invitation");
+                    showInvitation(rooms[i])
+                }
             }
             var visibleRoomTable = $("#visible-room-table");
             var csrfTokenHTML = "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf_token + "'/>";
@@ -98,25 +98,6 @@ function deleteRoom(roomToDeletee, srcElement) {
     )
 }
 
-/**
- * get new invitations from database
- */
-function getNewInvitation() {
-    $.ajax({
-        url: url_to_get_invitations,  // defined in room.html
-        type: 'GET',
-        datatype: 'json',
-        data: {
-            last_update_time: lastInvitationUpdateTime
-        },
-        success: function (invitations) {
-            for (var i = 0; i < invitations.length; i++) {
-                lastInvitationUpdateTime = getNewUpdateTime(lastInvitationUpdateTime, invitations[i]);
-                showInvitation(invitations[i]);
-            }
-        }
-    })
-}
 
 /**
  * Get new update time based on the Item's created time
@@ -132,8 +113,8 @@ function getNewUpdateTime(lastUpdateTime, Item) {
 function showInvitation(invitation) {
     var visibleRoomTable = $("#visible-room-table");
     var newInvitationHTML =
-        "<tr class='invitation'>" +
-        "<td><a>" + invitation['name'] + "</a></td>" +
+        "<tr class='invitation table-active'>" +
+        "<td class='align-middle'><a>" + invitation['name'] + "</a></td>" +
         "<td class='align-middle'>" + invitation['owner'] + "</td>" +
         "<td class='align-middle'>" +
         "<input onClick='respond_invitation(event)' type='submit' class='btn btn-primary invitation-response mr-3' value='Accept' name=" + invitation['room_pk'] + ">" +

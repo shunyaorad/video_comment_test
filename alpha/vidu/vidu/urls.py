@@ -31,8 +31,7 @@ urlpatterns = [
 	url(r'^get_comment/$', views.get_comment, name='get_comment'),
 	url(r'^invite/$', views.invite, name='invite'),
 	url(r'^respond/$', views.respond, name='respond'),
-	url(r'^get_rooms/$', views.get_rooms, name='get_rooms'),
+	url(r'^get_connection/$', views.get_connections, name='get_connections'),
 	url(r'^delete_room/$', views.delete_room, name='delete_room'),
-	url(r'^get_invitations/$', views.get_invitations, name='get_invitations'),
 	url(r'^admin/', admin.site.urls),
 ]

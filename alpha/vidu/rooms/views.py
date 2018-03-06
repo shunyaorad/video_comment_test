@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
 from .models import Room, Comment, Profile, Connection
@@ -105,6 +104,42 @@ def invite(request):
 
 
 @login_required
+def get_connections(request):
+	"""
+	Ajax way to get new rooms from database
+	:param request:
+	:return:
+	"""
+	# TODO: check valid request.POST
+	profile = request.user.profile
+	if 'last_connection_update_time' in request.GET and not request.GET['last_connection_update_time'] == '0':
+		last_update_time = parser.parse(request.GET['last_connection_update_time'])
+		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
+		# TODO: fix this time hack
+		last_update_time += timedelta(0, 1)
+		new_connections = profile.connections.filter(created_at__gt=last_update_time).order_by(
+			'created_at')
+	else:
+		new_connections = profile.connections.order_by('created_at')
+	response_text = []
+	for connection in new_connections:
+		parsed_room = convert_connection_to_room_dict(connection)
+		response_text.append(parsed_room)
+	return HttpResponse(json.dumps(response_text), content_type='application/json')
+
+
+def convert_connection_to_room_dict(connection):
+	"""
+	Convert from post object to json which contains created user info
+	"""
+	response_text = convert_room_info_to_dict(connection.room)
+	response_text['visible'] = connection.visible
+	response_text['created_at'] = timezone.localtime(connection.created_at).strftime("%m/%d/%Y %H:%M:%S")
+
+	return response_text
+
+
+@login_required
 def respond(request):
 	# TODO: Check if request.POST contains all fields needed
 	profile = request.user.profile
@@ -160,22 +195,6 @@ def post_comment(request):
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
 
-def convert_comment_to_dict(comment):
-	"""
-	Convert from post object to json which contains created user info
-	"""
-	response_text = {
-		'message': comment.message,
-		'time_stamp': comment.time_stamp,
-		'created_by_pk': comment.created_by.pk,
-		'created_by': comment.created_by.username,
-		'comment_pk': comment.pk,
-		'created_at': timezone.localtime(comment.created_at).strftime("%m/%d/%Y %H:%M:%S"),
-		'room_pk': comment.room.pk
-	}
-	return response_text
-
-
 @login_required
 def get_comment(request):
 	"""
@@ -201,77 +220,17 @@ def get_comment(request):
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
 
-@login_required
-def get_rooms(request):
-	"""
-	Ajax way to get new rooms from database
-	:param request:
-	:return:
-	"""
-	# TODO: check valid request.POST
-	profile = request.user.profile
-	if 'last_room_update_time' in request.GET and not request.GET['last_room_update_time'] == '0':
-		last_update_time = parser.parse(request.GET['last_room_update_time'])
-		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
-		# TODO: fix this time hack
-		last_update_time += timedelta(0, 1)
-		new_connections = profile.connections.filter(visible=True, created_at__gt=last_update_time).order_by(
-			'created_at')
-	else:
-		new_connections = profile.connections.filter(visible=True).order_by('created_at')
-	response_text = []
-	for connection in new_connections:
-		parsed_room = convert_connection_to_room_dict(connection)
-		response_text.append(parsed_room)
-	return HttpResponse(json.dumps(response_text), content_type='application/json')
-
-
-def convert_connection_to_room_dict(connection):
-	"""
-	Convert from post object to json which contains created user info
-	"""
-	response_text = convert_room_info_to_dict(connection.room)
-	response_text['created_at'] = timezone.localtime(connection.created_at).strftime("%m/%d/%Y %H:%M:%S")
-
-	return response_text
-
-
-@login_required
-def get_invitations(request):
-	"""
-	Ajax way to get new comments from database
-	:param request:
-	:return:
-	"""
-	# TODO: check valid request.POST
-	profile = request.user.profile
-	if 'last_update_time' in request.GET and not request.GET['last_update_time'] == '0':
-		last_update_time = parser.parse(request.GET['last_update_time'])
-		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
-		# TODO: fix this time hack
-		last_update_time += timedelta(0, 1)
-		new_invitations = Connection.objects.filter(
-			profile=profile, visible=False, created_at__gt=last_update_time
-		).order_by('created_at')
-	else:
-		new_invitations = Connection.objects.filter(profile=profile, visible=False).order_by('created_at')
-	response_text = []
-	for invitation in new_invitations:
-		parsed_invitation = convert_invitation_to_dict(invitation)
-		response_text.append(parsed_invitation)
-	return HttpResponse(json.dumps(response_text), content_type='application/json')
-
-
-def convert_invitation_to_dict(invitation):
+def convert_comment_to_dict(comment):
 	"""
 	Convert from post object to json which contains created user info
 	"""
 	response_text = {
-		'name': invitation.room.name,
-		'room_pk': invitation.room.pk,
-		'owner': invitation.room.owner.username,
-		'owner_pk': invitation.room.owner.pk,
-		'video_url': invitation.room.video_url,
-		'created_at': timezone.localtime(invitation.created_at).strftime("%m/%d/%Y %H:%M:%S")
+		'message': comment.message,
+		'time_stamp': comment.time_stamp,
+		'created_by_pk': comment.created_by.pk,
+		'created_by': comment.created_by.username,
+		'comment_pk': comment.pk,
+		'created_at': timezone.localtime(comment.created_at).strftime("%m/%d/%Y %H:%M:%S"),
+		'room_pk': comment.room.pk
 	}
 	return response_text
