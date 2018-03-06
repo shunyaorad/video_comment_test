@@ -1,5 +1,5 @@
 from django import forms
-from .models import Room, Comment, Invitation
+from .models import Room, Comment, Connection
 
 
 class NewRoomForm(forms.ModelForm):
@@ -47,5 +47,5 @@ class InvitationForm(forms.ModelForm):
 	)
 
 	class Meta:
-		model = Invitation
+		model = Connection
 		fields = ['username']

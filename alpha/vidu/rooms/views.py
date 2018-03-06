@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
-from .models import Room, Comment, Profile, Invitation
+from .models import Room, Comment, Profile, Connection
 from .forms import NewRoomForm, NewCommentForm, InvitationForm
 from django.contrib.auth.decorators import login_required
 import json
@@ -13,13 +13,16 @@ from datetime import timedelta
 
 @login_required
 def home(request):
-	rooms = request.user.profile.visible_rooms.all()
-	return render(request, 'home.html', {'rooms': rooms})
+	return render(request, 'home.html')
 
 
 @login_required
 def show_room(request, pk):
 	room = get_object_or_404(Room, pk=pk)
+	profile = request.user.profile
+	connection_set = profile.connections.filter(room=room)
+	if len(connection_set) == 0 or connection_set.first().visible is False:
+		raise Http404
 	url_form = NewRoomForm(instance=room)
 	comment_form = NewCommentForm()
 	invitation_form = InvitationForm()
@@ -39,9 +42,10 @@ def new_room(request):
 		form = NewRoomForm(request.POST)
 		if form.is_valid():
 			room = form.save(commit=False)
-			room.owner = user
+			room.owner = profile
 			room.save()
-			profile.visible_rooms.add(room)
+			connection = Connection(room=room, profile=profile, visible=True)
+			connection.save()
 			return redirect('show_room', pk=room.pk)
 	else:
 		form = NewRoomForm()
@@ -91,10 +95,9 @@ def invite(request):
 		room = get_object_or_404(Room, pk=request.POST['room_pk'])
 		invited_profile = Profile.objects.filter(username=invitation_form.cleaned_data['username'])[0]
 		# create invitation only if the user does not contain this room in his visible rooms
-		if not invited_profile.visible_rooms.filter(pk=room.pk).exists() and \
-				not Invitation.objects.filter(room=room, invited_profile=invited_profile).exists():
-			invitation = Invitation(room=room, invited_profile=invited_profile)
-			invitation.save()
+		if not invited_profile.connections.filter(room=room).exists():
+			connection = Connection(room=room, profile=invited_profile, visible=False)
+			connection.save()
 		response_text = {"invited_username": invited_profile.username}
 	else:
 		response_text = {"invited_username": None}
@@ -107,13 +110,16 @@ def respond(request):
 	profile = request.user.profile
 	response = request.POST['response']
 	room = get_object_or_404(Room, pk=request.POST['room_pk'])
+	connection = profile.connections.filter(room=room).first()
 	if response.lower() == 'accept':
-		profile.visible_rooms.add(room)
+		print("accepted!")
+		connection.visible = True
+		connection.created_at = timezone.now()
+		connection.save()
 		response_text = {'response': 'accept'}
 	else:
+		connection.delete()
 		response_text = {'response': 'decline'}
-	Invitation.objects.filter(room=room,
-	                          invited_profile=profile).delete()  # TODO: check if there is better way to filter
 
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
 
@@ -123,11 +129,11 @@ def delete_room(request):
 	# TODO: Check if request.POST contains all fields needed
 	profile = request.user.profile
 	room = get_object_or_404(Room, pk=request.POST['room_pk'])
-	if room.owner == request.user:  # if the owner of the room deletes, delete the entire from database
+	if room.owner == profile:  # if the owner of the room deletes, delete the room
 		room.delete()
 		response_text = {'response': 'deleted room from database'}
-	else:  # if not the owner of the room, delete the room from visible_rooms
-		profile.visible_rooms.remove(room)
+	else:  # if not the owner of the room, delete the connection to the room
+		profile.connections.filter(room=room).first().delete()
 		response_text = {'response': 'deleted from visible_rooms'}
 
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
@@ -144,7 +150,7 @@ def post_comment(request):
 	form = NewCommentForm(request.POST)
 	if form.is_valid():
 		comment = form.save(commit=False)
-		comment.created_by = request.user
+		comment.created_by = request.user.profile
 		comment.room = get_object_or_404(Room, pk=request.POST['room_pk'])
 		comment.time_stamp = request.POST['time_stamp']
 		comment.save()
@@ -198,7 +204,7 @@ def get_comment(request):
 @login_required
 def get_rooms(request):
 	"""
-	Ajax way to get new comments from database
+	Ajax way to get new rooms from database
 	:param request:
 	:return:
 	"""
@@ -209,14 +215,25 @@ def get_rooms(request):
 		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
 		# TODO: fix this time hack
 		last_update_time += timedelta(0, 1)
-		new_rooms = profile.visible_rooms.filter(created_at__gt=last_update_time).order_by('created_at')
+		new_connections = profile.connections.filter(visible=True, created_at__gt=last_update_time).order_by(
+			'created_at')
 	else:
-		new_rooms = profile.visible_rooms.all()
+		new_connections = profile.connections.filter(visible=True).order_by('created_at')
 	response_text = []
-	for room in new_rooms:
-		parsed_room = convert_room_info_to_dict(room)
+	for connection in new_connections:
+		parsed_room = convert_connection_to_room_dict(connection)
 		response_text.append(parsed_room)
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
+
+
+def convert_connection_to_room_dict(connection):
+	"""
+	Convert from post object to json which contains created user info
+	"""
+	response_text = convert_room_info_to_dict(connection.room)
+	response_text['created_at'] = timezone.localtime(connection.created_at).strftime("%m/%d/%Y %H:%M:%S")
+
+	return response_text
 
 
 @login_required
@@ -233,11 +250,11 @@ def get_invitations(request):
 		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
 		# TODO: fix this time hack
 		last_update_time += timedelta(0, 1)
-		new_invitations = Invitation.objects.filter(
-			invited_profile=profile, created_at__gt=last_update_time
+		new_invitations = Connection.objects.filter(
+			profile=profile, visible=False, created_at__gt=last_update_time
 		).order_by('created_at')
 	else:
-		new_invitations = Invitation.objects.filter(invited_profile=profile).order_by('created_at')
+		new_invitations = Connection.objects.filter(profile=profile, visible=False).order_by('created_at')
 	response_text = []
 	for invitation in new_invitations:
 		parsed_invitation = convert_invitation_to_dict(invitation)

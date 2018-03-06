@@ -90,7 +90,6 @@ function updateRoom(roomPK) {
 
 
 $('#invitation_form').on('submit', function (event) {
-    console.log("here");
     event.preventDefault();
     invite(roomPK);
 });

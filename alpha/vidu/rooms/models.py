@@ -5,10 +5,26 @@ from django.contrib.auth.models import User
 from django.utils.text import Truncator
 
 
+class Profile(models.Model):
+	profile_photo = models.FileField(upload_to="images", null=True, blank=True)
+	content_type = models.CharField(max_length=50, null=True, blank=True)
+	user = models.OneToOneField(User, on_delete=models.CASCADE)
+	last_name = models.CharField(max_length=20, null=True, blank=True)
+	first_name = models.CharField(max_length=20, null=True, blank=True)
+	username = models.CharField(max_length=20)
+	email = models.CharField(blank=True, max_length=32)
+
+	def __unicode__(self):
+		return 'Entry(id=' + str(self.id) + ')'
+
+	def __str__(self):
+		return "Username: " + self.username + ", " + "email: " + self.email
+
+
 class Room(models.Model):
 	name = models.CharField(max_length=30)
 	video_url = models.CharField(max_length=100)
-	owner = models.ForeignKey(User, related_name='rooms', on_delete=models.CASCADE)
+	owner = models.ForeignKey(Profile, related_name='my_rooms', on_delete=models.CASCADE)
 	last_commented = models.DateTimeField(auto_now_add=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 
@@ -19,7 +35,7 @@ class Room(models.Model):
 class Comment(models.Model):
 	message = models.TextField(max_length=500)
 	room = models.ForeignKey(Room, related_name='comments', on_delete=models.CASCADE)
-	created_by = models.ForeignKey(User, related_name='comments', on_delete=models.CASCADE)
+	created_by = models.ForeignKey(Profile, related_name='comments', on_delete=models.CASCADE)
 	created_at = models.DateTimeField(auto_now_add=True)
 	time_stamp = models.IntegerField()
 
@@ -28,31 +44,16 @@ class Comment(models.Model):
 		return truncated_message.chars(30) + " TS: " + str(self.time_stamp)
 
 
-class Profile(models.Model):
-	profile_photo = models.FileField(upload_to="images", null=True, blank=True)
-	content_type = models.CharField(max_length=50, null=True, blank=True)
-	user = models.OneToOneField(User, on_delete=models.CASCADE)
-	last_name = models.CharField(max_length=20, null=True, blank=True)
-	first_name = models.CharField(max_length=20, null=True, blank=True)
-	username = models.CharField(max_length=20)
-	email = models.CharField(blank=True, max_length=32)
-	visible_rooms = models.ManyToManyField(Room, related_name="visible_rooms", blank=True)
-
-	def __unicode__(self):
-		return 'Entry(id=' + str(self.id) + ')'
+class Connection(models.Model):
+	created_at = models.DateTimeField(auto_now_add=True)
+	room = models.ForeignKey(Room, related_name='connections', on_delete=models.CASCADE)
+	profile = models.ForeignKey(Profile, related_name='connections', on_delete=models.CASCADE)
+	visible = models.BooleanField(default=False)
 
 	def __str__(self):
-		return "Username: " + self.username + ", " + "email: " + self.email
-
-
-class Invitation(models.Model):
-	created_at = models.DateTimeField(auto_now_add=True, editable=False)
-	room = models.ForeignKey(Room, related_name='room', on_delete=models.CASCADE)
-	invited_profile = models.ForeignKey(Profile, related_name='invited_profile_set', on_delete=models.CASCADE)
-
-	def __str__(self):
-		return "Room: " + self.room.name + " Invited: " + self.invited_profile.username + " Created at: " + str(
-			self.created_at)
+		return "Room: " + self.room.name + \
+		       " Username: " + self.profile.username + \
+		       " Visible: " + str(self.visible) + " Created at: " + str(self.created_at)
 
 	class Meta:
-		unique_together = ['room', 'invited_profile']
+		unique_together = ['room', 'profile']

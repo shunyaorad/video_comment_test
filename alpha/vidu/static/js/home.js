@@ -1,15 +1,18 @@
-var lastInvitationUpdateTime = '0';
-var lastRoomUpdateTime = '0';
+var lastInvitationUpdateTime;
+var lastRoomUpdateTime;
 
 window.onload = initialize();
 window.setInterval(fetchData, 500);
 
 function initialize() {
     console.log("initializing");
-    getNewInvitation();
+    lastInvitationUpdateTime = '0';
+    lastRoomUpdateTime = '0';
 }
 
 function fetchData() {
+    // console.log("lastInvitationUpdateTime: " + lastInvitationUpdateTime);
+    // console.log("lastRoomUpdateTime: " + lastRoomUpdateTime);
     getNewRooms();
     getNewInvitation();
 }
@@ -30,11 +33,9 @@ function getNewRooms() {
                 lastRoomUpdateTime = getNewUpdateTime(lastRoomUpdateTime, rooms[i]);
                 showRoom(rooms[i]);
             }
-            //TODO: insert form for delete the room
             var visibleRoomTable = $("#visible-room-table");
             var csrfTokenHTML = "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf_token + "'/>";
             visibleRoomTable.append(csrfTokenHTML);
-
         }
     })
 }
@@ -43,24 +44,30 @@ function showRoom(room) {
     var roomURL = url_to_show_room.replace(/0/, room['room_pk']);
     var visibleRoomTable = $("#visible-room-table");
     var newInvitationHTML =
-        "<tr>" +
-            "<td class='align-middle'>" +
-                "<a href='" + roomURL + "'>" + room['name'] + "</a>" +
-                "<a href='" + room['video_url'] + "'>" +
-                    "<small class='text-muted d-block'>" +
-                        room['video_url'] +
-                    "</small>" +
-                "</a>" +
-            "</td>" +
-            "<td class='align-middle'>" +
-                room['owner'] +
-            "</td>" +
-            "<td class='align-middle'>" +
-                "<input onClick='deleteRoomPush(event)' type='submit' class='btn btn-danger invitation-response' " +
-                        "value='Delete' name=" + room['room_pk'] + ">" +
-            "</td>" +
+        "<tr class='visible-room'>" +
+        "<td class='align-middle'>" +
+        "<a href='" + roomURL + "'>" + room['name'] + "</a>" +
+        "<a href='" + room['video_url'] + "'>" +
+        "<small class='text-muted d-block'>" +
+        room['video_url'] +
+        "</small>" +
+        "</a>" +
+        "</td>" +
+        "<td class='align-middle'>" + room['owner'] + "</td>" +
+        "<td class='align-middle'>" +
+        "<input onClick='deleteRoomPush(event)' type='submit' class='btn btn-danger invitation-response' " +
+        "value='Delete' name=" + room['room_pk'] + ">" +
+        "</td>" +
         "</tr>";
-    visibleRoomTable.append(newInvitationHTML);
+    if (invitationExists()) {
+        $(newInvitationHTML).insertBefore($(".invitation").first());
+    } else {
+        visibleRoomTable.append(newInvitationHTML);
+    }
+}
+
+function invitationExists() {
+    return $(".invitation").length != 0
 }
 
 
@@ -83,11 +90,9 @@ function deleteRoom(roomToDeletee, srcElement) {
                 csrfmiddlewaretoken: getCSRFToken()
             },
             success: function (json) {
-                console.log(json);
                 $(srcElement).closest("tr").remove();
             },
             error: function (xhr, errmsg, err) {
-                console.log(errmsg)
             }
         }
     )
@@ -109,11 +114,6 @@ function getNewInvitation() {
                 lastInvitationUpdateTime = getNewUpdateTime(lastInvitationUpdateTime, invitations[i]);
                 showInvitation(invitations[i]);
             }
-            var invitationTable = $("#invitation-table");
-            // var invitationTable = $("#visible-room-table");
-            var csrfTokenHTML = "<input type='hidden' name='csrfmiddlewaretoken' value='" + csrf_token + "'/>";
-            invitationTable.append(csrfTokenHTML);
-
         }
     })
 }
@@ -130,14 +130,25 @@ function getNewUpdateTime(lastUpdateTime, Item) {
 }
 
 function showInvitation(invitation) {
-    var invitationTable = $("#invitation-table");
-    // var invitationTable = $("#visible-room-table");
-    var newInvitationHTML = "<tr><td><a>" + invitation['name'] + "</a></td>" +
-        "<td class='align-middle'>" + invitation['owner'] + "</td>" + "<td class='align-middle'>" +
-        "<input onClick='respond_invitation(event)' type='submit' class='btn btn-primary invitation-response' value='Accept' name=" + invitation['room_pk'] + ">" +
+    var visibleRoomTable = $("#visible-room-table");
+    var newInvitationHTML =
+        "<tr class='invitation'>" +
+        "<td><a>" + invitation['name'] + "</a></td>" +
+        "<td class='align-middle'>" + invitation['owner'] + "</td>" +
+        "<td class='align-middle'>" +
+        "<input onClick='respond_invitation(event)' type='submit' class='btn btn-primary invitation-response mr-3' value='Accept' name=" + invitation['room_pk'] + ">" +
         "<input onClick='respond_invitation(event)' type='submit' class='btn btn-danger invitation-response' value='Decline' name=" + invitation['room_pk'] + ">" +
-        "" + "</td></tr>";
-    invitationTable.append(newInvitationHTML);
+        "" + "</td>" +
+        "</tr>";
+    if (roomExists()) {
+        $(newInvitationHTML).insertAfter($(".visible-room").last());
+    } else {
+        visibleRoomTable.append(newInvitationHTML);
+    }
+}
+
+function roomExists() {
+    return $(".visible-room").length != 0;
 }
 
 function respond_invitation(event) {
