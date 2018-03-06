@@ -106,11 +106,17 @@
                         </div>
                     </div>
                 </form>
-                <div class="input-group">
+                <div class="col-11 input-group mt-2">
+                    <input id="shareable-link" type="text" class="form-control" value="{{ shareable_link }}" readonly>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" id="shareable-link-button" type="button">Get Shareable Link!</button>
+                    </div>
+                </div>
+                <div class="input-group mt-3">
                     <input id="playback-time" type="text" class="form-control" placeholder="Jump to">
-                    <span class="input-group-btn">
-                    <button class="btn btn-primary" type="button" onclick="jumpTo()">Jump!</button>
-                </span>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button" onclick="jumpTo()">Jump!</button>
+                    </div>
                 </div>
             </div>
         </div>

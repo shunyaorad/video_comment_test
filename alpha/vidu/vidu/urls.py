@@ -25,6 +25,7 @@ urlpatterns = [
 	url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
 	url(r'^logout/$', auth_views.LogoutView.as_view(), name='logout'),
 	url(r'^rooms/(?P<pk>\d+)/$', views.show_room, name='show_room'),
+	url(r'^shared-rooms/(?P<signed_pk>[0-9]+/[A-Za-z0-9_=-]+)/$', views.show_shared_room, name='shared-room'),
 	url(r'^new_room/$', views.new_room, name='new_room'),
 	url(r'^update_room/$', views.update_room, name='update_room'),
 	url(r'^post_comment/$', views.post_comment, name='post_comment'),

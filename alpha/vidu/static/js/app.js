@@ -235,6 +235,17 @@ function flow() {
     })
 }
 
+$("#shareable-link-button").on('click', function () {
+    copyToClipBoard();
+});
+
+function copyToClipBoard() {
+    var copyText = document.getElementById("shareable-link");
+    copyText.select();
+    document.execCommand("Copy");
+    alert("Link copied to clipboard!");
+}
+
 /**
  * Jump video to specified time
  */

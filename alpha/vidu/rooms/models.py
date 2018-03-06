@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import Truncator
+from django.core.signing import Signer
+from django.urls import reverse
 
 
 class Profile(models.Model):
@@ -27,6 +29,12 @@ class Room(models.Model):
 	owner = models.ForeignKey(Profile, related_name='my_rooms', on_delete=models.CASCADE)
 	last_commented = models.DateTimeField(auto_now_add=True)
 	created_at = models.DateTimeField(auto_now_add=True)
+
+	signer = Signer(sep='/', salt='rooms.Room')
+
+	def get_absolute_url(self):
+		signed_pk = self.signer.sign(self.pk)
+		return reverse('shared-room', kwargs={'signed_pk': signed_pk})
 
 	def __str__(self):
 		return "Owner: " + self.owner.username + " Name: " + str(self.name) + " URL: " + str(self.video_url)

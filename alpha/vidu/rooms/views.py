@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
+from django.core.signing import BadSignature
 from .models import Room, Comment, Profile, Connection
 from .forms import NewRoomForm, NewCommentForm, InvitationForm
 from django.contrib.auth.decorators import login_required
@@ -25,12 +26,31 @@ def show_room(request, pk):
 	url_form = NewRoomForm(instance=room)
 	comment_form = NewCommentForm()
 	invitation_form = InvitationForm()
+	shareable_link = "http://localhost:8000" + room.get_absolute_url()
 	return render(request, 'room.html', {
 		'room': room,
 		'url_form': url_form,
 		'comment_form': comment_form,
-		'invitation_form': invitation_form
+		'invitation_form': invitation_form,
+		'shareable_link': shareable_link
 	})
+
+
+def show_shared_room(request, signed_pk):
+	try:
+		pk = Room.signer.unsign(signed_pk)
+		room = Room.objects.get(pk=pk)
+		url_form = NewRoomForm(instance=room)
+		comment_form = NewCommentForm()
+		invitation_form = InvitationForm()
+		return render(request, 'room.html', {
+			'room': room,
+			'url_form': url_form,
+			'comment_form': comment_form,
+			'invitation_form': invitation_form
+		})
+	except (BadSignature, Room.DoesNotExist):
+		raise Http404('No Order matches the given query.')
 
 
 @login_required
