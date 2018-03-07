@@ -13,8 +13,8 @@
         <div class="row justify-content-center">
             <div class="col-lg-4 col-md-6 col-sm-8">
                 <div class="card">
+                    <h3 class="card-header">Log in</h3>
                     <div class="card-body">
-                        <h3 class="card-title">Log in</h3>
                         <form method="post" novalidate>
                             {% csrf_token %}
                             {% include 'includes/form.html' %}
@@ -22,7 +22,18 @@
                         </form>
                     </div>
                     <div class="card-footer text-muted text-center">
-                        New to VidU? <a href="{% url 'signup' %}">Sign up</a>
+                        <p>
+                            New to VidU? <a href="{% url 'signup' %}">Sign up</a>
+                        </p>
+                        <p>
+                            <a href="{% url 'social:begin' 'github' %}">Login with GitHub</a><br>
+                        </p>
+                        <p>
+                            <a href="{% url 'social:begin' 'twitter' %}">Login with Twitter</a>
+                        </p>
+                        <p>
+                            <a href="{% url 'social:begin' 'facebook' %}">Login with Facebook</a>
+                        </p>
                     </div>
                 </div>
                 <div class="text-center py-2">

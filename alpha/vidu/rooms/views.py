@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, Http404
 from django.core.signing import BadSignature
-from .models import Room, Comment, Profile, Connection
+from .models import Room, Comment, Connection
+from django.contrib.auth.models import User
 from .forms import NewRoomForm, NewCommentForm, InvitationForm
 from django.contrib.auth.decorators import login_required
 import json
@@ -19,8 +20,8 @@ def home(request):
 @login_required
 def show_room(request, pk):
 	room = get_object_or_404(Room, pk=pk)
-	profile = request.user.profile
-	connection_set = profile.connections.filter(room=room)
+	user = request.user
+	connection_set = user.connections.filter(room=room)
 	if len(connection_set) == 0 or connection_set.first().visible is False:
 		raise Http404
 	url_form = NewRoomForm(instance=room)
@@ -56,14 +57,13 @@ def show_shared_room(request, signed_pk):
 @login_required
 def new_room(request):
 	user = request.user
-	profile = user.profile
 	if request.method == 'POST':
 		form = NewRoomForm(request.POST)
 		if form.is_valid():
 			room = form.save(commit=False)
-			room.owner = profile
+			room.owner = user
 			room.save()
-			connection = Connection(room=room, profile=profile, visible=True)
+			connection = Connection(room=room, user=user, visible=True)
 			connection.save()
 			return redirect('show_room', pk=room.pk)
 	else:
@@ -112,12 +112,12 @@ def invite(request):
 	invitation_form = InvitationForm(request.POST)
 	if invitation_form.is_valid():
 		room = get_object_or_404(Room, pk=request.POST['room_pk'])
-		invited_profile = Profile.objects.filter(username=invitation_form.cleaned_data['username'])[0]
+		invited_user = User.objects.filter(username=invitation_form.cleaned_data['username']).first()
 		# create invitation only if the user does not contain this room in his visible rooms
-		if not invited_profile.connections.filter(room=room).exists():
-			connection = Connection(room=room, profile=invited_profile, visible=False)
+		if not invited_user.connections.filter(room=room).exists():
+			connection = Connection(room=room, user=invited_user, visible=False)
 			connection.save()
-		response_text = {"invited_username": invited_profile.username}
+		response_text = {"invited_username": invited_user.username}
 	else:
 		response_text = {"invited_username": None}
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
@@ -131,16 +131,16 @@ def get_connections(request):
 	:return:
 	"""
 	# TODO: check valid request.POST
-	profile = request.user.profile
+	user = request.user
 	if 'last_connection_update_time' in request.GET and not request.GET['last_connection_update_time'] == '0':
 		last_update_time = parser.parse(request.GET['last_connection_update_time'])
 		last_update_time = pytz.timezone('US/Eastern').localize(last_update_time)
 		# TODO: fix this time hack
 		last_update_time += timedelta(0, 1)
-		new_connections = profile.connections.filter(created_at__gt=last_update_time).order_by(
+		new_connections = user.connections.filter(created_at__gt=last_update_time).order_by(
 			'created_at')
 	else:
-		new_connections = profile.connections.order_by('created_at')
+		new_connections = user.connections.order_by('created_at')
 	response_text = []
 	for connection in new_connections:
 		parsed_room = convert_connection_to_room_dict(connection)
@@ -162,10 +162,10 @@ def convert_connection_to_room_dict(connection):
 @login_required
 def respond(request):
 	# TODO: Check if request.POST contains all fields needed
-	profile = request.user.profile
+	user = request.user
 	response = request.POST['response']
 	room = get_object_or_404(Room, pk=request.POST['room_pk'])
-	connection = profile.connections.filter(room=room).first()
+	connection = user.connections.filter(room=room).first()
 	if response.lower() == 'accept':
 		print("accepted!")
 		connection.visible = True
@@ -182,13 +182,13 @@ def respond(request):
 @login_required
 def delete_room(request):
 	# TODO: Check if request.POST contains all fields needed
-	profile = request.user.profile
+	user = request.user
 	room = get_object_or_404(Room, pk=request.POST['room_pk'])
-	if room.owner == profile:  # if the owner of the room deletes, delete the room
+	if room.owner == user:  # if the owner of the room deletes, delete the room
 		room.delete()
 		response_text = {'response': 'deleted room from database'}
 	else:  # if not the owner of the room, delete the connection to the room
-		profile.connections.filter(room=room).first().delete()
+		user.connections.filter(room=room).first().delete()
 		response_text = {'response': 'deleted from visible_rooms'}
 
 	return HttpResponse(json.dumps(response_text), content_type='application/json')
@@ -205,7 +205,7 @@ def post_comment(request):
 	form = NewCommentForm(request.POST)
 	if form.is_valid():
 		comment = form.save(commit=False)
-		comment.created_by = request.user.profile
+		comment.created_by = request.user
 		comment.room = get_object_or_404(Room, pk=request.POST['room_pk'])
 		comment.time_stamp = request.POST['time_stamp']
 		comment.save()

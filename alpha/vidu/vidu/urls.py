@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.contrib import admin
 from rooms import views
 from accounts import views as accounts_views
@@ -24,6 +24,9 @@ urlpatterns = [
 	url(r'^signup/$', accounts_views.signup, name='signup'),
 	url(r'^login/$', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
 	url(r'^logout/$', auth_views.LogoutView.as_view(), name='logout'),
+	url(r'^settings/$', accounts_views.settings, name='settings'),
+	url(r'^settings/password/$', accounts_views.password, name='password'),
+	url(r'^settings/update/$', accounts_views.update_username, name='update_username'),
 	url(r'^rooms/(?P<pk>\d+)/$', views.show_room, name='show_room'),
 	url(r'^shared-rooms/(?P<signed_pk>[0-9]+/[A-Za-z0-9_=-]+)/$', views.show_shared_room, name='shared-room'),
 	url(r'^new_room/$', views.new_room, name='new_room'),
@@ -34,5 +37,6 @@ urlpatterns = [
 	url(r'^respond/$', views.respond, name='respond'),
 	url(r'^get_connection/$', views.get_connections, name='get_connections'),
 	url(r'^delete_room/$', views.delete_room, name='delete_room'),
+	url(r'^oauth/', include('social_django.urls', namespace='social')),
 	url(r'^admin/', admin.site.urls),
 ]

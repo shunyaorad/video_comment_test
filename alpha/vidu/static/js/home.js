@@ -6,11 +6,13 @@ window.setInterval(fetchData, 500);
 function initialize() {
     console.log("initializing");
     lastConnectionUpdateTime = '0';
+    getNewConnections();
 }
 
 function fetchData() {
     getNewConnections();
 }
+
 /**
  * get new connections from database
  */
